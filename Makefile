@@ -65,4 +65,7 @@ test:
 lint:
 	$(call ExecWithMsg,Linting,$(DOCKERLINT) Dockerfile)
 
+update-package-list:
+	$(call ExecWithMsg,Updating Packages to Install List,./update-packages-to-install-list.sh)
+
 .PHONY: all clean build test lint
