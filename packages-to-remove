@@ -1,0 +1,9 @@
+bsdutils
+e2fsprogs
+gcc-9-base
+libext2fs2
+libss2
+logsave
+ncurses-bin
+sysvinit-utils
+util-linux

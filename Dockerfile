@@ -1,8 +1,6 @@
-ARG IMAGE_NAME=debian
-ARG IMAGE_LABEL=bullseye-20220125-slim
-ARG DEBIAN_FRONTEND=noninteractive
-
-FROM $IMAGE_NAME:$IMAGE_LABEL as start
+ARG UPSTREAM_IMAGE_NAME
+ARG UPSTREAM_IMAGE_LABEL
+FROM $UPSTREAM_IMAGE_NAME:$UPSTREAM_IMAGE_LABEL as rootfs
 
 # List of essential programs for the base debian system and/or for
 # debian's package management, and hence can't be removed:
@@ -41,6 +39,10 @@ FROM $IMAGE_NAME:$IMAGE_LABEL as start
 # login
 # passwd
 
+ARG PACKAGES_TO_INSTALL
+ARG PACKAGES_TO_REMOVE
+ARG DEBIAN_FRONTEND=noninteractive
+# hadolint ignore=DL3008
 RUN \
     echo 'APT::Install-Recommends "0" ; APT::Install-Suggests "0" ;' > /etc/apt/apt.conf.d/01-no-recommended \
     # Do not install these files as part of package installations. \
@@ -52,9 +54,12 @@ RUN \
     && echo 'path-exclude=/usr/share/man/*' >> /etc/dpkg/dpkg.cfg.d/path_exclusions \
     # Refresh package list from the repository. \
     && apt-get update \
-    # # Set up en_US.UTF-8 locale. \
+    # Purge existing locales. \
     && apt-get purge locales \
-    && apt-get install --assume-yes --no-install-recommends locales \
+    # Install packages which will help with debugging. \
+    && apt-get install \
+        --assume-yes --no-install-recommends $PACKAGES_TO_INSTALL \
+    # Set up en_US.UTF-8 locale. \
     && sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
     && dpkg-reconfigure --frontend=noninteractive locales \
     && update-locale LANG=en_US.UTF-8 \
@@ -65,33 +70,9 @@ RUN \
     # Remove other locale files which we won't use. \
     && find /usr/share/i18n/locales ! -name en_US -type f -exec rm -v {} + \
     && find /usr/share/i18n/charmaps ! -name UTF-8.gz -type f -exec rm -v {} + \
-    # Install packages which will help with debugging. \
-    && apt-get install --assume-yes --no-install-recommends \
-        bash \
-        curl \
-        dnsutils \
-        grep \
-        gzip \
-        iputils-ping \
-        iproute2 \
-        locales \
-        net-tools \
-        procps \
-        sed \
-        tar \
-        tzdata \
-        wget \
     # Remove packages that will never be used. \
-    && apt-get remove --assume-yes --purge --allow-remove-essential \
-        bsdutils \
-        e2fsprogs \
-        gcc-9-base \
-        libext2fs2 \
-        libss2 \
-        logsave \
-        ncurses-bin \
-        sysvinit-utils \
-        util-linux \
+    && apt-get remove \
+        --assume-yes --purge --allow-remove-essential $PACKAGES_TO_REMOVE \
     # Remove any packages that are no longer required. \
     && apt-get autoremove --assume-yes \
     && apt-get clean \
@@ -118,5 +99,5 @@ RUN \
 
 # Flatten the layers to reduce the final image size.
 FROM scratch
-COPY --from=start / /
+COPY --from=rootfs / /
 CMD ["bash"]
