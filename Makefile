@@ -39,7 +39,8 @@ FULL_IMAGE_NAME   := $(USER_NAME)/$(IMAGE_NAME):$(IMAGE_TAG)
 
 # Commands invoked from rules.
 DOCKERBUILD        := $(DOCKER_CMD) build --pull
-DOCKERTEST := $(DOCKER_CMD) run --rm $(FULL_IMAGE_NAME) sh -c 'apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install nginx'
+DOCKERTEST         := $(DOCKER_CMD) run --rm $(FULL_IMAGE_NAME) sh -c 'apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install nginx'
+DOCKERLINT         := $(DOCKER_CMD) run --rm -i hadolint/hadolint:v2.8.0 hadolint - <
 
 # Helpful functions
 # ExecWithMsg
@@ -50,7 +51,7 @@ define ExecWithMsg
     $(silent)$(2)
 endef
 
-all: build test
+all: build test lint
 
 clean:
 	$(call ExecWithMsg,Cleaning,)
@@ -61,4 +62,7 @@ build:
 test:
 	$(call ExecWithMsg,Testing,$(DOCKERTEST))
 
-.PHONY: all clean build test
+lint:
+	$(call ExecWithMsg,Linting,$(DOCKERLINT) Dockerfile)
+
+.PHONY: all clean build test lint
