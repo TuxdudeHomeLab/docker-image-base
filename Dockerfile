@@ -89,7 +89,7 @@ RUN \
         sysvinit-utils \
         util-linux \
     # Remove any packages that are no longer required. \
-    && DEBIAN_FRONTEND=noninteractive apt autoremove --assume-yes \
+    && DEBIAN_FRONTEND=noninteractive apt-get autoremove --assume-yes \
     && DEBIAN_FRONTEND=noninteractive apt-get clean \
     # Debian rootfs contains a static machine-id file and we don't want to \
     # use that. Instead clear the machine ID to a 0-byte file. \
