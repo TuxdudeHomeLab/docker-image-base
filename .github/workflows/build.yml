@@ -44,12 +44,23 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Export Build Args as Workflow Env vars
+        run: ./build-args.sh >> $GITHUB_ENV
+
+      - name: Dump context
+        uses: crazy-max/ghaction-dump-context@v1
+
       - name: Build and export to Docker
         uses: docker/build-push-action@v2
         with:
           context: .
           load: true
           tags: ${{ env.TEST_TAG }}
+          build-args: |
+            UPSTREAM_IMAGE_NAME=${{ env.UPSTREAM_IMAGE_NAME }}
+            UPSTREAM_IMAGE_LABEL=${{ env.UPSTREAM_IMAGE_LABEL }}
+            PACKAGES_TO_INSTALL=${{ env.PACKAGES_TO_INSTALL }}
+            PACKAGES_TO_REMOVE=${{ env.PACKAGES_TO_REMOVE }}
 
       - name: Test
         run: |
@@ -62,3 +73,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: tuxdude/homelab-base:master
+          build-args: |
+            UPSTREAM_IMAGE_NAME=${{ env.UPSTREAM_IMAGE_NAME }}
+            UPSTREAM_IMAGE_LABEL=${{ env.UPSTREAM_IMAGE_LABEL }}
+            PACKAGES_TO_INSTALL=${{ env.PACKAGES_TO_INSTALL }}
+            PACKAGES_TO_REMOVE=${{ env.PACKAGES_TO_REMOVE }}
