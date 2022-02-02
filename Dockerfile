@@ -1,4 +1,4 @@
-FROM debian:11.2-slim as start
+FROM debian:bullseye-20220125-slim as start
 
 # List of essential programs for the base debian system and/or for
 # debian's package management, and hence can't be removed:
