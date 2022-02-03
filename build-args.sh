@@ -15,13 +15,13 @@ args_file_as_build_args() {
     fi
 }
 
-packages_to_install_file_as_build_arg() {
+packages_to_install() {
     while IFS="=" read -r key value; do
         echo -n "$key=$value "
     done < "packages-to-install"
 }
 
-packages_to_remove_file_as_build_arg() {
+packages_to_remove() {
     while IFS="=" read -r key; do
         echo -n "$key "
     done < "packages-to-remove"
@@ -30,11 +30,11 @@ packages_to_remove_file_as_build_arg() {
 if [[ "$1" == "docker-flags" ]]; then
     # --build-arg format used with the docker build command.
     args_file_as_build_args $1
-    echo -n "--build-arg PACKAGES_TO_INSTALL=\"$(packages_to_install_file_as_build_arg)\" "
-    echo -n "--build-arg PACKAGES_TO_REMOVE=\"$(packages_to_remove_file_as_build_arg)\""
+    echo -n "--build-arg PACKAGES_TO_INSTALL=\"$(packages_to_install)\" "
+    echo -n "--build-arg PACKAGES_TO_REMOVE=\"$(packages_to_remove)\""
 else
     # Github Env format dump.
     args_file_as_build_args
-    echo "PACKAGES_TO_INSTALL=$(packages_to_install_file_as_build_arg)"
-    echo "PACKAGES_TO_REMOVE=$(packages_to_remove_file_as_build_arg)"
+    echo "PACKAGES_TO_INSTALL=$(packages_to_install)"
+    echo "PACKAGES_TO_REMOVE=$(packages_to_remove)"
 fi
