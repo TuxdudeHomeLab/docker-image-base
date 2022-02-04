@@ -13,15 +13,15 @@ get_cmd() {
 
 get_image_name() {
     local image_name=""
-    local image_label=""
+    local image_tag=""
     while IFS="=" read -r key value; do
         if [[ "$key" == "UPSTREAM_IMAGE_NAME" ]]; then
             image_name="$value"
-        elif [[ "$key" == "UPSTREAM_IMAGE_LABEL" ]]; then
-            image_label="$value"
+        elif [[ "$key" == "UPSTREAM_IMAGE_TAG" ]]; then
+            image_tag="$value"
         fi
     done < "args"
-    echo -n "${image_name:?}:${image_label:?}"
+    echo -n "${image_name:?}:${image_tag:?}"
 }
 
 updated_list=$(docker run --rm "$(get_image_name)" sh -c "$(get_cmd)" | grep -v 'Listing...')
