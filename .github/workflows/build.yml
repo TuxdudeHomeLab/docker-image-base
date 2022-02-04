@@ -18,6 +18,7 @@ permissions:
   contents: read
 
 env:
+  PLATFORMS: linux/amd64,linux/arm64/v8,linux/arm/v7,linux/arm/v6,linux/ppc64le
   DOCKERHUB_TEST_TAG: ci-test
   DOCKERHUB_PUBLISH_TAG: ${{ github.ref_name }}
 
@@ -68,7 +69,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{env.PLATFORMS}}
           push: true
           tags: ${{ env.DOCKERHUB_REPO_NAME }}:${{ env.DOCKERHUB_PUBLISH_TAG }}
           build-args: ${{ steps.docker_build_args.outputs.build_args }}
