@@ -63,7 +63,7 @@ jobs:
 
       - name: Test
         run: |
-          docker run --rm ${{ env.DOCKERHUB_REPO_NAME }}:${{ env.DOCKERHUB_TEST_TAG }} sh -c 'apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install nginx'
+          IMAGE_TAG=${{ env.DOCKERHUB_TEST_TAG }} make test
 
       - name: Build and push
         uses: docker/build-push-action@v2
