@@ -68,4 +68,8 @@ lint:
 update-package-list:
 	$(call ExecWithMsg,Updating Packages to Install List,./update-packages-to-install-list.sh)
 
-.PHONY: all clean build test lint update-package-list
+github_env_vars:
+	@echo "DOCKERHUB_REPO_NAME=$(USER_NAME)/$(IMAGE_NAME)"
+	@./build-args.sh
+
+.PHONY: all clean build test lint update-package-list github_env_vars

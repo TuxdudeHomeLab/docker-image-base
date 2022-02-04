@@ -18,7 +18,6 @@ permissions:
   contents: read
 
 env:
-  DOCKERHUB_REPO_NAME: tuxdude/homelab-base
   DOCKERHUB_TEST_TAG: ci-test
   DOCKERHUB_PUBLISH_TAG: ${{ github.ref_name }}
 
@@ -46,8 +45,8 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Export Build Args as Workflow Env vars
-        run: ./build-args.sh >> $GITHUB_ENV
+      - name: Set Workflow Env vars
+        run: make github_env_vars >> $GITHUB_ENV
 
       - name: Build and export to Docker
         uses: docker/build-push-action@v2
