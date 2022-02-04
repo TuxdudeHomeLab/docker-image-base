@@ -20,7 +20,7 @@ get_image_name() {
         elif [[ "$key" == "UPSTREAM_IMAGE_TAG" ]]; then
             image_tag="$value"
         fi
-    done < "args"
+    done < "ARGS"
     echo -n "${image_name:?}:${image_tag:?}"
 }
 

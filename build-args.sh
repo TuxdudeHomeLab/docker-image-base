@@ -7,11 +7,11 @@ args_file_as_build_args() {
         prefix="--build-arg "
         while IFS="=" read -r key value; do
             echo -n "${prefix}$key=\"$value\" "
-        done < "args"
+        done < "ARGS"
     else
         while IFS="=" read -r key value; do
             echo "$key=$value"
-        done < "args"
+        done < "ARGS"
     fi
 }
 
