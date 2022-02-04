@@ -48,17 +48,17 @@ jobs:
       - name: Set Workflow Env vars
         run: make github_env_vars >> $GITHUB_ENV
 
+      - name: Set Up Docker Build Args
+        id: docker_build_args
+        run: make github_dump_docker_build_args
+
       - name: Build and export to Docker
         uses: docker/build-push-action@v2
         with:
           context: .
           load: true
           tags: ${{ env.DOCKERHUB_REPO_NAME }}:${{ env.DOCKERHUB_TEST_TAG }}
-          build-args: |
-            UPSTREAM_IMAGE_NAME=${{ env.UPSTREAM_IMAGE_NAME }}
-            UPSTREAM_IMAGE_TAG=${{ env.UPSTREAM_IMAGE_TAG }}
-            PACKAGES_TO_INSTALL=${{ env.PACKAGES_TO_INSTALL }}
-            PACKAGES_TO_REMOVE=${{ env.PACKAGES_TO_REMOVE }}
+          build-args: ${{ steps.docker_build_args.outputs.build_args }}
 
       - name: Test
         run: |
@@ -71,8 +71,4 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ env.DOCKERHUB_REPO_NAME }}:${{ env.DOCKERHUB_PUBLISH_TAG }}
-          build-args: |
-            UPSTREAM_IMAGE_NAME=${{ env.UPSTREAM_IMAGE_NAME }}
-            UPSTREAM_IMAGE_TAG=${{ env.UPSTREAM_IMAGE_TAG }}
-            PACKAGES_TO_INSTALL=${{ env.PACKAGES_TO_INSTALL }}
-            PACKAGES_TO_REMOVE=${{ env.PACKAGES_TO_REMOVE }}
+          build-args: ${{ steps.docker_build_args.outputs.build_args }}

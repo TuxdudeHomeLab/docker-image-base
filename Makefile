@@ -70,6 +70,9 @@ update-package-list:
 
 github_env_vars:
 	@echo "DOCKERHUB_REPO_NAME=$(USER_NAME)/$(IMAGE_NAME)"
+
+github_dump_docker_build_args:
 	@./build-args.sh
 
-.PHONY: all clean build test lint update-package-list github_env_vars
+.PHONY: all clean build test lint update-package-list
+.PHONY: github_env_vars github_dump_docker_build_args
