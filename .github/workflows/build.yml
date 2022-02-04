@@ -23,9 +23,10 @@ env:
   DOCKERHUB_PUBLISH_TAG: ${{ github.ref_name }}
 
 jobs:
-  docker:
+  build:
     name: Build
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false
