@@ -26,4 +26,7 @@ RUN \
 # Flatten the layers to reduce the final image size.
 FROM scratch
 COPY --from=rootfs / /
+
+SHELL ["/bin/bash", "-c"]
+ENV PATH="/opt/bin:${PATH}"
 CMD ["bash"]
