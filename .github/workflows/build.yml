@@ -18,7 +18,7 @@ permissions:
   contents: read
 
 env:
-  PLATFORMS: linux/amd64,linux/arm64/v8,linux/arm/v7,linux/arm/v6,linux/ppc64le
+  PLATFORMS: linux/amd64,linux/arm64/v8,linux/arm/v7
   DOCKERHUB_TEST_TAG: ci-test
   DOCKERHUB_PUBLISH_TAG: ${{ github.ref_name }}
 
