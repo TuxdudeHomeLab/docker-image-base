@@ -17,7 +17,7 @@ RUN \
     && ls -l /opt/bin/ /opt/homelab/ \
     # Install packages which will help with debugging. \
     && homelab install $PACKAGES_TO_INSTALL \
-    # Set up en_US.UTF-8 locale.
+    # Set up en_US.UTF-8 locale \.
     # locale package is part of PACKAGES_TO_INSTALL. \
     && homelab setup-en-us-utf8-locale \
     # Remove packages that will never be used. \
