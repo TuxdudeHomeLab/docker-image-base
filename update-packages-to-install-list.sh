@@ -2,11 +2,12 @@
 set -e
 
 ARGS_FILE="config/ARGS"
+PACKAGES_INSTALL_FILE="config/PACKAGES_INSTALL"
 
 get_packages() {
     while IFS="=" read -r key value; do
         echo -n "$key "
-    done < "packages-to-install"
+    done < "${PACKAGES_INSTALL_FILE:?}"
 }
 
 get_cmd() {
@@ -27,4 +28,4 @@ get_image_name() {
 }
 
 updated_list=$(docker run --rm "$(get_image_name)" sh -c "$(get_cmd)" | grep -v 'Listing...')
-echo "$updated_list" > packages-to-install
+echo "$updated_list" > "${PACKAGES_INSTALL_FILE:?}"

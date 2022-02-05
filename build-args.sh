@@ -2,6 +2,8 @@
 set -e
 
 ARGS_FILE="config/ARGS"
+PACKAGES_INSTALL_FILE="config/PACKAGES_INSTALL"
+PACKAGES_REMOVE_FILE="config/PACKAGES_REMOVE"
 
 args_file_as_build_args() {
     local prefix=""
@@ -20,13 +22,13 @@ args_file_as_build_args() {
 packages_to_install() {
     while IFS="=" read -r key value; do
         echo -n "$key=$value "
-    done < "packages-to-install"
+    done < "${PACKAGES_INSTALL_FILE:?}"
 }
 
 packages_to_remove() {
     while IFS="=" read -r key; do
         echo -n "$key "
-    done < "packages-to-remove"
+    done < "${PACKAGES_REMOVE_FILE:?}"
 }
 
 github_env_dump() {
