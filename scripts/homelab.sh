@@ -146,7 +146,7 @@ install_tar_dist() {
     # Download and unpack the release.
     curl --silent --location --output ${tar_file:?} ${download_url:?}
     echo "${download_checksum:?} ${tar_file:?}" | sha256sum -c
-    tar xf ${tar_file:?}
+    tar -xf ${tar_file:?}
     rm ${tar_file:?}
 
     # Set up symlinks.
