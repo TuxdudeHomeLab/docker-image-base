@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
-ARGS_FILE="config/ARGS"
-PACKAGES_INSTALL_FILE="config/PACKAGES_INSTALL"
+script_parent_dir="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+repo_dir="$(realpath "${script_parent_dir:?}/..")"
+
+ARGS_FILE="${repo_dir:?}/config/ARGS"
+PACKAGES_INSTALL_FILE="${repo_dir:?}/config/PACKAGES_INSTALL"
 
 get_packages() {
     while IFS="=" read -r key value; do

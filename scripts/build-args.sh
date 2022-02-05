@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 set -e
 
-ARGS_FILE="config/ARGS"
-PACKAGES_INSTALL_FILE="config/PACKAGES_INSTALL"
-PACKAGES_REMOVE_FILE="config/PACKAGES_REMOVE"
+script_parent_dir="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+repo_dir="$(realpath "${script_parent_dir:?}/..")"
+
+ARGS_FILE="${repo_dir:?}/config/ARGS"
+PACKAGES_INSTALL_FILE="${repo_dir:?}/config/PACKAGES_INSTALL"
+PACKAGES_REMOVE_FILE="${repo_dir:?}/config/PACKAGES_REMOVE"
 
 args_file_as_build_args() {
     local prefix=""

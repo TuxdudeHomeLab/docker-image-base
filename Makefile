@@ -38,10 +38,11 @@ IMAGE_TAG         ?= latest
 FULL_IMAGE_NAME   := $(USER_NAME)/$(IMAGE_NAME):$(IMAGE_TAG)
 
 # Commands invoked from rules.
-DOCKERBUILD             := $(DOCKER_CMD) build $(shell ./build-args.sh docker-flags)
+DUMP_BUILD_ARGS         := ./scripts/build-args.sh
+UPDATE_PACKAGES_INSTALL := ./scripts/update-packages-install.sh
+DOCKERBUILD             := $(DOCKER_CMD) build $(shell $(DUMP_BUILD_ARGS) docker-flags)
 DOCKERTEST              := $(DOCKER_CMD) run --rm $(FULL_IMAGE_NAME) sh -c 'apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install nginx'
 DOCKERLINT              := $(DOCKER_CMD) run --rm -i hadolint/hadolint:v2.8.0 hadolint - <
-UPDATE_PACKAGES_INSTALL := ./update-packages-install.sh
 
 # Helpful functions
 # ExecWithMsg
@@ -73,7 +74,7 @@ github_env_vars:
 	@echo "DOCKERHUB_REPO_NAME=$(USER_NAME)/$(IMAGE_NAME)"
 
 github_dump_docker_build_args:
-	@./build-args.sh
+	@$(DUMP_BUILD_ARGS)
 
 .PHONY: all clean build test lint update-package-list
 .PHONY: github_env_vars github_dump_docker_build_args
