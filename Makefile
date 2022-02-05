@@ -67,7 +67,7 @@ test:
 lint:
 	$(call ExecWithMsg,Linting,$(DOCKERLINT) Dockerfile)
 
-update-package-list:
+update_packages:
 	$(call ExecWithMsg,Updating Packages to Install List,$(UPDATE_PACKAGES_INSTALL))
 
 github_env_vars:
@@ -76,5 +76,5 @@ github_env_vars:
 github_dump_docker_build_args:
 	@$(DUMP_BUILD_ARGS)
 
-.PHONY: all clean build test lint update-package-list
+.PHONY: all clean build test lint update_packages
 .PHONY: github_env_vars github_dump_docker_build_args
