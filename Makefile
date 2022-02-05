@@ -38,9 +38,10 @@ IMAGE_TAG         ?= latest
 FULL_IMAGE_NAME   := $(USER_NAME)/$(IMAGE_NAME):$(IMAGE_TAG)
 
 # Commands invoked from rules.
-DOCKERBUILD        := $(DOCKER_CMD) build $(shell ./build-args.sh docker-flags)
-DOCKERTEST         := $(DOCKER_CMD) run --rm $(FULL_IMAGE_NAME) sh -c 'apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install nginx'
-DOCKERLINT         := $(DOCKER_CMD) run --rm -i hadolint/hadolint:v2.8.0 hadolint - <
+DOCKERBUILD             := $(DOCKER_CMD) build $(shell ./build-args.sh docker-flags)
+DOCKERTEST              := $(DOCKER_CMD) run --rm $(FULL_IMAGE_NAME) sh -c 'apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install nginx'
+DOCKERLINT              := $(DOCKER_CMD) run --rm -i hadolint/hadolint:v2.8.0 hadolint - <
+UPDATE_PACKAGES_INSTALL := ./update-packages-to-install-list.sh
 
 # Helpful functions
 # ExecWithMsg
@@ -66,7 +67,7 @@ lint:
 	$(call ExecWithMsg,Linting,$(DOCKERLINT) Dockerfile)
 
 update-package-list:
-	$(call ExecWithMsg,Updating Packages to Install List,./update-packages-to-install-list.sh)
+	$(call ExecWithMsg,Updating Packages to Install List,$(UPDATE_PACKAGES_INSTALL))
 
 github_env_vars:
 	@echo "DOCKERHUB_REPO_NAME=$(USER_NAME)/$(IMAGE_NAME)"
