@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
+ARGS_FILE="config/ARGS"
+
 get_packages() {
     while IFS="=" read -r key value; do
         echo -n "$key "
@@ -20,7 +22,7 @@ get_image_name() {
         elif [[ "$key" == "UPSTREAM_IMAGE_TAG" ]]; then
             image_tag="$value"
         fi
-    done < "ARGS"
+    done < ${ARGS_FILE:?}
     echo -n "${image_name:?}:${image_tag:?}"
 }
 
