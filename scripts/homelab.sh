@@ -2,6 +2,16 @@
 
 set -x -e -o pipefail
 
+# These variables are set here directly to allow the child
+# images to directly invoke these commands without a dependency
+# on the right environment variables (and/or Docker args) to
+# be set in the child images.
+S6_OVERLAY_VERSION=3.0.0.2
+S6_OVERLAY_CHECKSUM_NOARCH=17880e4bfaf6499cd1804ac3a6e245fd62bc2234deadf8ff4262f4e01e3ee521
+S6_OVERLAY_CHECKSUM_X86_64=a4c039d1515812ac266c24fe3fe3c00c48e3401563f7f11d09ac8e8b4c2d0b0c
+S6_OVERLAY_CHECKSUM_AARCH64=e6c15e22dde00af4912d1f237392ac43a1777633b9639e003ba3b78f2d30eb33
+S6_OVERLAY_CHECKSUM_ARMHF=49cc67181fb38c010c31ff1ff1ff63ec9046f2520d8168e0c9d59046ef6a6bfe
+
 script_name="$(basename "$(realpath "${BASH_SOURCE[0]}")")"
 script_parent_dir="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 script_abs_path="${script_parent_dir:?}/${script_name:?}"
@@ -158,6 +168,37 @@ install_tar_dist() {
     popd >/dev/null
 }
 
+# Docker platform to uname arch mapping
+# "linux/amd64"     "amd64"
+# "linux/386"       "x86"
+# "linux/arm64"     "aarch64"
+# "linux/arm64/v8"  "aarch64"
+# "linux/arm/v7"    "armhf", "armv7"
+# "linux/arm/v6"    "arm"
+# "linux/ppc64le"   "ppc64le"
+download_and_install_s6() {
+    local "platform=${1:?}"
+    local tar_file="/tmp/file-$(date +'%Y-%m-%d_%H-%M-%S.%3N')"
+    local download_url="https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION:?}/s6-overlay-${platform:?}-${S6_OVERLAY_VERSION:?}.tar.xz"
+    checksum_var_name="S6_OVERLAY_CHECKSUM_${platform^^}"
+    local download_checksum="${!checksum_var_name}"
+
+    echo "Downloading s6-overlay for \"${platform:?}\" v${S6_OVERLAY_VERSION:?}"
+    curl --silent --location --output ${tar_file:?} ${download_url:?}
+    echo "${download_checksum:?} ${tar_file:?}" | sha256sum -c
+    tar -xpf ${tar_file:?} -C /
+    rm ${tar_file:?}
+}
+
+install_s6() {
+    local platform="$(uname -m)"
+    if [[ "${platform:?}" == "armv7l" ]]; then
+        platform="armhf"
+    fi
+    download_and_install_s6 noarch
+    download_and_install_s6 "${platform:?}"
+}
+
 case "$1" in
     "setup")
         init
@@ -182,6 +223,9 @@ case "$1" in
         update_repo
         remove_packages "${@:2}"
         cleanup_post_package_op
+        ;;
+    "install-s6")
+        install_s6
         ;;
     "setup-en-us-utf8-locale")
         configure_en_us_utf8_locale

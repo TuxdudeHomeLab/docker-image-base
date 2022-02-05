@@ -21,7 +21,9 @@ RUN \
     # locale package is part of PACKAGES_TO_INSTALL. \
     && homelab setup-en-us-utf8-locale \
     # Remove packages that will never be used. \
-    && homelab remove $PACKAGES_TO_REMOVE
+    && homelab remove $PACKAGES_TO_REMOVE \
+    # Install s6 overlay. \
+    && homelab install-s6
 
 # Flatten the layers to reduce the final image size.
 FROM scratch
