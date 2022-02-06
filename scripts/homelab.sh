@@ -52,8 +52,10 @@ remove_packages() {
 
 cleanup_post_package_op() {
     # Remove any packages that are no longer required.
+    apt-get remove --purge --auto-remove -y
     apt-get autoremove --assume-yes
     apt-get clean
+    apt-get purge -y --auto-remove
     # Manually remove leftover cruft after having to run
     # an apt command.
     rm -rf \
