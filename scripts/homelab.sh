@@ -132,7 +132,7 @@ add_user() {
     fi
     groupadd --gid ${group_id:?} ${group_name:?}
     useradd \
-        ${create_home_dir:?} \
+        ${create_home_dir} \
         --shell /bin/bash \
         --uid ${user_id:?} \
         --gid ${group_id:?} \
