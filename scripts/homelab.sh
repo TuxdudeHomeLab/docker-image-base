@@ -200,6 +200,18 @@ install_s6() {
     download_and_install_s6 "${platform:?}"
 }
 
+install_pkg_gpg_key() {
+    gpg_key="${1:?}"
+    keyserver="hkp://keyserver.ubuntu.com:80"
+    homelab install gnupg1
+
+    echo "Fetching GPG key $gpg_key from $keyserver"
+    apt-key adv \
+        --keyserver "$keyserver" \
+        --keyserver-options timeout=10 \
+        --recv-keys "${gpg_key:?}"
+    apt-get remove --purge --auto-remove -y gnupg1
+}
 case "$1" in
     "setup")
         init
@@ -236,6 +248,10 @@ case "$1" in
         ;;
     "install-tar-dist")
         install_tar_dist "${@:2}"
+        ;;
+    "install-pkg-gpg-key")
+        install_pkg_gpg_key "${@:2}"
+        cleanup_post_package_op
         ;;
     *)
         echo "Invalid command \"$1\""
