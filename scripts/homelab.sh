@@ -2,6 +2,8 @@
 
 set -x -e -o pipefail
 
+export DEBIAN_FRONTEND=noninteractive
+
 # These variables are set here directly to allow the child
 # images to directly invoke these commands without a dependency
 # on the right environment variables (and/or Docker args) to
@@ -30,24 +32,18 @@ destroy() {
 
 update_repo() {
     # Refresh package list from the repository.
-    DEBIAN_FRONTEND=noninteractive apt-get update
-}
-
-cleanup_post_package_op() {
-    # Remove any packages that are no longer required.
-    DEBIAN_FRONTEND=noninteractive apt-get autoremove --assume-yes
-    DEBIAN_FRONTEND=noninteractive apt-get clean
+    apt-get update
 }
 
 install_packages() {
-    DEBIAN_FRONTEND=noninteractive apt-get install \
+    apt-get install \
         --assume-yes \
         --no-install-recommends \
         ${@}
 }
 
 remove_packages() {
-    DEBIAN_FRONTEND=noninteractive apt-get remove \
+    apt-get remove \
         --assume-yes \
         --purge \
         --allow-remove-essential \
@@ -55,6 +51,9 @@ remove_packages() {
 }
 
 cleanup_post_package_op() {
+    # Remove any packages that are no longer required.
+    apt-get autoremove --assume-yes
+    apt-get clean
     # Manually remove leftover cruft after having to run
     # an apt command.
     rm -rf \
@@ -91,7 +90,7 @@ configure_en_us_utf8_locale() {
 
 purge_locales() {
     # Purge existing locales.
-    DEBIAN_FRONTEND=noninteractive apt-get purge locales
+    apt-get purge locales
 }
 
 setup_apt() {
