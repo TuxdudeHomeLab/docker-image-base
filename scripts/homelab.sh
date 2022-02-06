@@ -212,6 +212,73 @@ install_pkg_gpg_key() {
         --recv-keys "${gpg_key:?}"
     apt-get remove --purge --auto-remove -y gnupg1
 }
+
+random_file_name() {
+    shuf -zer -n10  {A..Z} {a..z} {0..9} | tr -d '\0'
+}
+
+# Build from sources, package them as a .deb and install the .deb packages.
+install_pkg_from_deb_src() {
+    src_repo="${1:?}"
+    pkgs="${2:?}"
+    apt_repo_base_path="/etc/apt/sources.list.d"
+    src_repo_file="${apt_repo_base_path:?}/src_$(random_file_name).list"
+    bin_repo_file="${apt_repo_base_path:?}/bin_$(random_file_name).list"
+    bin_repo_dir="$(mktemp -d)"
+
+    echo "${src_repo:?}" > ${src_repo_file:?}
+
+    # Ensure APT's "_apt" user can access the files.
+    chmod 777 "${bin_repo_dir:?}"
+    # Save the list of currently-installed packages so build dependencies
+    # can be cleanly removed later.
+    saved_apt_mark="$(apt-mark showmanual)"
+
+    # Download the build dependencies.
+    # Among the build dependencies, some packages depend on utilities
+    # like getopt part of util-linux.
+    update_repo
+    install_packages util-linux
+    apt-get build-dep -y ${pkgs:?}
+
+    # Compile the target packages.
+    pushd "${bin_repo_dir:?}"
+    DEB_BUILD_OPTIONS="nocheck parallel=$(nproc)" apt-get source --compile ${pkgs:?}
+    popd
+
+    # Remove the source repository as it is no longer needed.
+    rm ${src_repo_file:?}
+
+    # Reset apt-mark's "manual" list so that "purge --auto-remove" will
+    # remove all the build dependencies. The purge is done as a last step.
+    apt-mark showmanual | xargs apt-mark auto > /dev/null
+    [ -z "$saved_apt_mark" ] || apt-mark manual $saved_apt_mark;
+
+    # Create a temporary local APT repo to install from and dependency
+    # resolution will be handled by apt.
+    ls -lAFh "${bin_repo_dir:?}"
+    pushd "${bin_repo_dir:?}"
+    dpkg-scanpackages . > Packages
+    popd
+    grep '^Package: ' "${bin_repo_dir:?}/Packages"
+    echo "deb [ trusted=yes ] file://${bin_repo_dir:?} ./" > ${bin_repo_file:?}
+
+    # Work around the following APT issue by using "Acquire::GzipIndexes=false"
+    # (overriding "/etc/apt/apt.conf.d/docker-gzip-indexes")
+    #   Could not open file /var/lib/apt/lists/partial/_tmp_tmp.ODWljpQfkE_._Packages - open (13: Permission denied)
+    #   ...
+    #   E: Failed to fetch store:/var/lib/apt/lists/partial/_tmp_tmp.ODWljpQfkE_._Packages  Could not open file /var/lib/apt/lists/partial/_tmp_tmp.ODWljpQfkE_._Packages - open (13: Permission denied)
+    apt-get -o Acquire::GzipIndexes=false update
+
+    # Install the target packages, which will use the .deb packages that we
+    # just built and published to the local repository.
+    install_packages ${pkgs:?}
+
+    # Remove the build artifacts and the binary repository.
+    remove_packages util-linux
+    rm -rf "${bin_repo_dir:?}" ${bin_repo_file:?}
+}
+
 case "$1" in
     "setup")
         init
@@ -251,6 +318,10 @@ case "$1" in
         ;;
     "install-pkg-gpg-key")
         install_pkg_gpg_key "${@:2}"
+        cleanup_post_package_op
+        ;;
+    "install-pkg-from-deb-src")
+        install_pkg_from_deb_src "${@:2}"
         cleanup_post_package_op
         ;;
     *)
