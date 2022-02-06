@@ -41,7 +41,7 @@ FULL_IMAGE_NAME   := $(USER_NAME)/$(IMAGE_NAME):$(IMAGE_TAG)
 DUMP_BUILD_ARGS         := ./scripts/build-args.sh
 UPDATE_PACKAGES_INSTALL := ./scripts/update-packages-install.sh
 DOCKERBUILD             := $(DOCKER_CMD) build $(shell $(DUMP_BUILD_ARGS) docker-flags)
-DOCKERTEST              := $(DOCKER_CMD) run --rm $(FULL_IMAGE_NAME) sh -c 'apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install nginx'
+DOCKERTEST              := IMAGE=$(FULL_IMAGE_NAME) ./scripts/test.sh
 DOCKERLINT              := $(DOCKER_CMD) run --rm -i hadolint/hadolint:v2.8.0 hadolint - <
 
 # Helpful functions
