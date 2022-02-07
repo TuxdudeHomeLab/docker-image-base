@@ -347,6 +347,13 @@ build_pkg_from_std_deb_src() {
     popd
 }
 
+install_deb_pkg() {
+    local arch=$(dpkg --print-architecture)
+    set -- "${@/#/${deb_pkgs_dir}/}"
+    set -- "${@/%/_${arch:?}.deb}"
+    install_packages ${@}
+}
+
 case "$1" in
     "setup")
         init
@@ -397,6 +404,10 @@ case "$1" in
         ;;
     "build-pkg-from-std-deb-src")
         build_pkg_from_std_deb_src "${@:2}"
+        cleanup_post_package_op
+        ;;
+    "install-deb-pkg")
+        install_deb_pkg "${@:2}"
         cleanup_post_package_op
         ;;
     *)
