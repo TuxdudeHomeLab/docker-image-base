@@ -169,6 +169,33 @@ install_tar_dist() {
     popd >/dev/null
 }
 
+install_git_repo() {
+    local git_repo_url="${1:?}"
+    local git_branch_or_tag="${2:?}"
+    local package_name="${3:?}"
+    local symlink_to="${4:?}"
+    local owner_user="${5:?}"
+    local owner_group="${6:?}"
+    local install_dir="${base_install_dir:?}/${package_name:?}"
+    local tar_file="/tmp/file-$(date +'%Y-%m-%d_%H-%M-%S.%3N')"
+
+    # Prepare the install directory.
+    rm -rf ${install_dir:?}
+    mkdir -p ${base_install_dir:?}
+    pushd ${base_install_dir:?} >/dev/null
+
+    # Clone the git repository.
+    git clone --depth 1 --branch ${git_branch_or_tag:?} ${git_repo_url:?} ${symlink_to:?}
+
+    # Set up symlinks.
+    ln -s ${symlink_to:?} ${package_name:?}
+
+    # Make the installed directory owned by the specified user and the group.
+    chown -R ${owner_user:?}:${owner_group:?} ${install_dir:?}
+
+    popd >/dev/null
+}
+
 # Docker platform to uname arch mapping
 # "linux/amd64"     "amd64"
 # "linux/386"       "x86"
@@ -315,6 +342,9 @@ case "$1" in
         ;;
     "install-tar-dist")
         install_tar_dist "${@:2}"
+        ;;
+    "install-git-repo")
+        install_git_repo "${@:2}"
         ;;
     "install-pkg-gpg-key")
         install_pkg_gpg_key "${@:2}"
