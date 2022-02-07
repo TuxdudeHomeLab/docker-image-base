@@ -231,8 +231,8 @@ install_s6() {
 }
 
 install_pkg_gpg_key() {
-    gpg_key="${1:?}"
-    keyserver="hkp://keyserver.ubuntu.com:80"
+    local gpg_key="${1:?}"
+    local keyserver="hkp://keyserver.ubuntu.com:80"
     homelab install gnupg1
 
     echo "Fetching GPG key $gpg_key from $keyserver"
@@ -249,12 +249,12 @@ random_file_name() {
 
 # Build from sources, package them as a .deb and install the .deb packages.
 install_pkg_from_deb_src() {
-    src_repo="${1:?}"
-    pkgs="${2:?}"
-    apt_repo_base_path="/etc/apt/sources.list.d"
-    src_repo_file="${apt_repo_base_path:?}/src_$(random_file_name).list"
-    bin_repo_file="${apt_repo_base_path:?}/bin_$(random_file_name).list"
-    bin_repo_dir="$(mktemp -d)"
+    local src_repo="${1:?}"
+    local pkgs="${2:?}"
+    local apt_repo_base_path="/etc/apt/sources.list.d"
+    local src_repo_file="${apt_repo_base_path:?}/src_$(random_file_name).list"
+    local bin_repo_file="${apt_repo_base_path:?}/bin_$(random_file_name).list"
+    local bin_repo_dir="$(mktemp -d)"
 
     echo "${src_repo:?}" > ${src_repo_file:?}
 
@@ -262,7 +262,7 @@ install_pkg_from_deb_src() {
     chmod 777 "${bin_repo_dir:?}"
     # Save the list of currently-installed packages so build dependencies
     # can be cleanly removed later.
-    saved_apt_mark="$(apt-mark showmanual)"
+    local saved_apt_mark="$(apt-mark showmanual)"
 
     # Download the build dependencies.
     # Among the build dependencies, some packages depend on utilities
