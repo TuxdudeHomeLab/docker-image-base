@@ -21,6 +21,7 @@ script_parent_dir="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 script_abs_path="${script_parent_dir:?}/${script_name:?}"
 
 base_install_dir="/opt"
+deb_pkgs_dir="/deb-pkgs"
 
 init() {
     mkdir -p ${base_install_dir:?}/bin
@@ -308,6 +309,44 @@ install_pkg_from_deb_src() {
     rm -rf "${bin_repo_dir:?}" ${bin_repo_file:?}
 }
 
+build_pkg_from_std_deb_src() {
+    local pkgs="${1:?}"
+    local apt_repo_base_path="/etc/apt/sources.list.d"
+    local src_repo_file="${apt_repo_base_path:?}/src_$(random_file_name).list"
+    local build_dir="$(mktemp -d)"
+    local main_src_repo="deb-src http://deb.debian.org/debian/ ${DEBIAN_RELEASE:?} main contrib non-free"
+    local security_src_repo="deb-src http://deb.debian.org/debian-security/ ${DEBIAN_RELEASE:?}-security main contrib non-free"
+    local updates_src_repo="deb-src http://deb.debian.org/debian/ ${DEBIAN_RELEASE:?}-updates main contrib non-free"
+
+    echo -e "${main_src_repo:?}\n${security_src_repo:?}\n${updates_src_repo:?}\n" > \
+        ${src_repo_file:?}
+
+    # Ensure APT's "_apt" user can access the files.
+    chmod 777 "${build_dir:?}"
+
+    # Download the build dependencies.
+    # Among the build dependencies, some packages depend on utilities
+    # like getopt part of util-linux.
+    update_repo
+    install_packages util-linux
+    apt-get build-dep -y ${pkgs:?}
+
+    pushd "${build_dir:?}"
+
+    # Download the sources for the target packages.
+    DEB_BUILD_OPTIONS="nocheck parallel=$(nproc)" apt-get source ${pkgs:?}
+    # Apply any available patches.
+    mkdir -p /patches/
+    find /patches -iname *.diff -print0 | sort -z | xargs -0 -n 1 patch -p1 -i
+    # Build the target packages with the patches.
+    DEB_BUILD_OPTIONS="nocheck parallel=$(nproc)" apt-get source --compile ${pkgs:?}
+    # Move the resulting *.deb files.
+    mkdir -p ${deb_pkgs_dir:?}
+    mv *.deb "${deb_pkgs_dir:?}/"
+
+    popd
+}
+
 case "$1" in
     "setup")
         init
@@ -354,6 +393,10 @@ case "$1" in
         ;;
     "install-pkg-from-deb-src")
         install_pkg_from_deb_src "${@:2}"
+        cleanup_post_package_op
+        ;;
+    "build-pkg-from-std-deb-src")
+        build_pkg_from_std_deb_src "${@:2}"
         cleanup_post_package_op
         ;;
     *)
