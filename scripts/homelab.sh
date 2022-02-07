@@ -13,6 +13,8 @@ S6_OVERLAY_CHECKSUM_NOARCH=17880e4bfaf6499cd1804ac3a6e245fd62bc2234deadf8ff4262f
 S6_OVERLAY_CHECKSUM_X86_64=a4c039d1515812ac266c24fe3fe3c00c48e3401563f7f11d09ac8e8b4c2d0b0c
 S6_OVERLAY_CHECKSUM_AARCH64=e6c15e22dde00af4912d1f237392ac43a1777633b9639e003ba3b78f2d30eb33
 S6_OVERLAY_CHECKSUM_ARMHF=49cc67181fb38c010c31ff1ff1ff63ec9046f2520d8168e0c9d59046ef6a6bfe
+# TODO: use lsb_release -sc or equivalent.
+DEBIAN_RELEASE="bullseye"
 
 script_name="$(basename "$(realpath "${BASH_SOURCE[0]}")")"
 script_parent_dir="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
