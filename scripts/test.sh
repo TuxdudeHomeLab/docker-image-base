@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 set -e -o pipefail
 
 random_container_name() {

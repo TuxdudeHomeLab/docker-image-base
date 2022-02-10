@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -e -o pipefail
 
 script_parent_dir="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 repo_dir="$(realpath "${script_parent_dir:?}/..")"
