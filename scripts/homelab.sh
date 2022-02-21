@@ -360,6 +360,7 @@ case "$1" in
         remove_machine_id
         update_repo
         purge_locales
+        install_packages "${@:2}"
         cleanup_post_package_op
         ;;
     "destroy")
