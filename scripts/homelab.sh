@@ -7,6 +7,9 @@ export DEBIAN_FRONTEND=noninteractive
 # images to directly invoke these commands without a dependency
 # on the right environment variables (and/or Docker args) to
 # be set in the child images.
+TUXDUDE_GPG_KEY="8D458AC08D2CE9CE"
+PICOINIT_VERSION=0.2.0
+
 S6_OVERLAY_VERSION=3.0.0.2
 S6_OVERLAY_CHECKSUM_NOARCH=17880e4bfaf6499cd1804ac3a6e245fd62bc2234deadf8ff4262f4e01e3ee521
 S6_OVERLAY_CHECKSUM_X86_64=a4c039d1515812ac266c24fe3fe3c00c48e3401563f7f11d09ac8e8b4c2d0b0c
@@ -114,6 +117,73 @@ setup_apt() {
         /etc/dpkg/dpkg.cfg.d/path_exclusions
     echo 'path-exclude=/usr/share/man/*' >> \
         /etc/dpkg/dpkg.cfg.d/path_exclusions
+}
+
+setup_tuxdude_gpg_key() {
+    install_packages gnupg1
+    gpg1 --verbose --keyserver hkps://keys.openpgp.org --recv-keys ${TUXDUDE_GPG_KEY:?}
+}
+
+cleanup_tuxdude_gpg_key() {
+    rm -rf $HOME/.gnupg
+    remove_packages gnupg1
+}
+
+arch_for_tuxdude_go_pkg() {
+    local platform="$(uname -m)"
+    case "${platform:?}" in
+        "x86_64")
+            echo "x86_64"
+            ;;
+        "i386"|"i686")
+            echo "i386"
+            ;;
+        "armv7l"|"armhf")
+            echo "armv7"
+            ;;
+        "arm"|"armel")
+            echo "armv6"
+            ;;
+        "aarch64"|"armv8l")
+            echo "arm64"
+            ;;
+        *)
+            echo "Invalid command \"$1\""
+            exit 1
+    esac
+
+}
+
+install_picoinit() {
+    setup_tuxdude_gpg_key
+    local download_dir="$(mktemp -d)"
+    mkdir -p ${download_dir:?}
+
+    local version="${PICOINIT_VERSION:?}"
+    local arch="$(arch_for_tuxdude_go_pkg)"
+    local base_url="https://github.com/Tuxdude/picoinit/releases/download/v${version:?}"
+    local tar_url="${base_url:?}/picoinit_${version:?}_Linux_${arch:?}.tar.xz"
+    local tar_sig_url="${base_url:?}/picoinit_${version:?}_Linux_${arch:?}.tar.xz.sig"
+    local checksums_url="${base_url:?}/checksums.txt"
+    local checksums_sig_url="${base_url:?}/checksums.txt.sig"
+
+    echo "Downloading picoinit for \"${arch:?}\" v${version:?}"
+    for url in "${tar_url:?}"  "${tar_sig_url:?}" "${checksums_url:?}" "${checksums_sig_url:?}"; do
+        curl --silent --location --remote-name --output-dir ${download_dir:?} ${url:?}
+    done
+
+    pushd ${download_dir:?}
+    gpg1 --verbose checksums.txt.sig
+    gpg1 --verbose picoinit_${version:?}_Linux_${arch:?}.tar.xz.sig
+    sha256sum --check --ignore-missing checksums.txt
+    tar xvf picoinit_${version:?}_Linux_${arch:?}.tar.xz
+    mkdir -p /opt/picoinit
+    mv picoinit /opt/picoinit/
+    ln -sf /opt/picoinit/picoinit /opt/bin/picoinit
+    popd
+
+    rm -rf ${download_dir:?}
+    cleanup_tuxdude_gpg_key
 }
 
 remove_machine_id() {
@@ -361,6 +431,7 @@ case "$1" in
         update_repo
         purge_locales
         install_packages "${@:2}"
+        install_picoinit
         cleanup_post_package_op
         ;;
     "destroy")

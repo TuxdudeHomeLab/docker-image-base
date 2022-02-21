@@ -28,4 +28,5 @@ COPY --from=rootfs / /
 
 SHELL ["/bin/bash", "-c"]
 ENV PATH="/opt/bin:${PATH}"
+ENTRYPOINT ["picoinit"]
 CMD ["bash"]
