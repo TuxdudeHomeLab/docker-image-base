@@ -8,7 +8,7 @@ export DEBIAN_FRONTEND=noninteractive
 # on the right environment variables (and/or Docker args) to
 # be set in the child images.
 TUXDUDE_GPG_KEY="8D458AC08D2CE9CE"
-PICOINIT_VERSION=0.2.0
+PICOINIT_VERSION=0.2.1
 
 S6_OVERLAY_VERSION=3.0.0.2
 S6_OVERLAY_CHECKSUM_NOARCH=17880e4bfaf6499cd1804ac3a6e245fd62bc2234deadf8ff4262f4e01e3ee521
