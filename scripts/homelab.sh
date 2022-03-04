@@ -155,31 +155,37 @@ arch_for_tuxdude_go_pkg() {
 }
 
 install_picoinit() {
+    install_tuxdude_go_package "Tuxdude/picoinit" "${PICOINIT_VERSION:?}"
+}
+
+install_tuxdude_go_package() {
     setup_tuxdude_gpg_key
     local download_dir="$(mktemp -d)"
     mkdir -p ${download_dir:?}
 
-    local version="${PICOINIT_VERSION:?}"
+    local repo="${1:?}"
+    local pkg_name="$(basename ${repo:?})"
+    local version="${2:?}"
     local arch="$(arch_for_tuxdude_go_pkg)"
-    local base_url="https://github.com/Tuxdude/picoinit/releases/download/v${version:?}"
-    local tar_url="${base_url:?}/picoinit_${version:?}_Linux_${arch:?}.tar.xz"
-    local tar_sig_url="${base_url:?}/picoinit_${version:?}_Linux_${arch:?}.tar.xz.sig"
+    local base_url="https://github.com/${repo:?}/releases/download/v${version:?}"
+    local tar_url="${base_url:?}/${pkg_name:?}_${version:?}_Linux_${arch:?}.tar.xz"
+    local tar_sig_url="${base_url:?}/${pkg_name:?}_${version:?}_Linux_${arch:?}.tar.xz.sig"
     local checksums_url="${base_url:?}/checksums.txt"
     local checksums_sig_url="${base_url:?}/checksums.txt.sig"
 
-    echo "Downloading picoinit for \"${arch:?}\" v${version:?}"
+    echo "Downloading ${pkg_name:?} for \"${arch:?}\" v${version:?}"
     for url in "${tar_url:?}"  "${tar_sig_url:?}" "${checksums_url:?}" "${checksums_sig_url:?}"; do
         curl --silent --location --remote-name --output-dir ${download_dir:?} ${url:?}
     done
 
     pushd ${download_dir:?}
     gpg1 --verbose checksums.txt.sig
-    gpg1 --verbose picoinit_${version:?}_Linux_${arch:?}.tar.xz.sig
+    gpg1 --verbose ${pkg_name:?}_${version:?}_Linux_${arch:?}.tar.xz.sig
     sha256sum --check --ignore-missing checksums.txt
-    tar xvf picoinit_${version:?}_Linux_${arch:?}.tar.xz
-    mkdir -p /opt/picoinit
-    mv picoinit /opt/picoinit/
-    ln -sf /opt/picoinit/picoinit /opt/bin/picoinit
+    tar xvf ${pkg_name:?}_${version:?}_Linux_${arch:?}.tar.xz
+    mkdir -p /opt/${pkg_name:?}
+    mv ${pkg_name:?} /opt/${pkg_name:?}/
+    ln -sf /opt/${pkg_name:?}/${pkg_name:?} /opt/bin/${pkg_name:?}
     popd
 
     rm -rf ${download_dir:?}
@@ -449,6 +455,9 @@ case "$1" in
         update_repo
         remove_packages "${@:2}"
         cleanup_post_package_op
+        ;;
+    "install-tuxdude-go-package")
+        install_tuxdude_go_package "${@:2}"
         ;;
     "install-s6")
         install_s6
