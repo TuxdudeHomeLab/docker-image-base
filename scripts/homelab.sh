@@ -457,6 +457,7 @@ case "$1" in
         cleanup_post_package_op
         ;;
     "install-tuxdude-go-package")
+        update_repo
         install_tuxdude_go_package "${@:2}"
         ;;
     "install-s6")
