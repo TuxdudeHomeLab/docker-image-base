@@ -192,13 +192,6 @@ install_tuxdude_go_package() {
     cleanup_tuxdude_gpg_key
 }
 
-remove_machine_id() {
-    # Debian rootfs contains a static machine-id file and we don't want to
-    # use that. Instead clear the machine ID to a 0-byte file.
-    rm /etc/machine-id
-    touch /etc/machine-id
-}
-
 add_user() {
     local user_name=${1:?}
     local user_id=${2:?}
@@ -433,7 +426,6 @@ case "$1" in
     "setup")
         init
         setup_apt
-        remove_machine_id
         update_repo
         purge_locales
         install_packages "${@:2}"
