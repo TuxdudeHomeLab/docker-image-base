@@ -1,6 +1,6 @@
 bash=5.1-2+deb11u1
 ca-certificates=20210119
-curl=7.74.0-1.3+deb11u1
+curl=7.74.0-1.3+deb11u2
 dnsutils=1:9.16.27-1~deb11u1
 grep=3.6-1
 gzip=1.10-4+deb11u1
