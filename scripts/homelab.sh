@@ -389,13 +389,13 @@ install_pkg_from_deb_src() {
 build_pkg_from_std_deb_src() {
     local pkgs="${1:?}"
     local apt_repo_base_path="/etc/apt/sources.list.d"
-    local src_repo_file="${apt_repo_base_path:?}/src_$(random_file_name).list"
+    local src_repo_file="${apt_repo_base_path:?}/src_$(random_file_name).sources"
     local build_dir="$(mktemp -d)"
-    local main_src_repo="deb-src http://deb.debian.org/debian/ ${DEBIAN_RELEASE:?} main contrib non-free"
-    local security_src_repo="deb-src http://deb.debian.org/debian-security/ ${DEBIAN_RELEASE:?}-security main contrib non-free"
-    local updates_src_repo="deb-src http://deb.debian.org/debian/ ${DEBIAN_RELEASE:?}-updates main contrib non-free"
 
-    echo -e "${main_src_repo:?}\n${security_src_repo:?}\n${updates_src_repo:?}\n" > \
+    local main_src_repo="Types: deb-src\nURIs: http://deb.debian.org/debian\nSuites: ${DEBIAN_RELEASE:?} ${DEBIAN_RELEASE:?}-updates\nComponents: main contrib non-free\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg"
+    local security_src_repo="Types: deb-src\nURIs: http://deb.debian.org/debian-security\nSuites: ${DEBIAN_RELEASE:?}-security\nComponents: main contrib non-free\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg"
+
+    echo -e "${main_src_repo:?}\n\n${security_src_repo:?}\n\n" > \
         ${src_repo_file:?}
 
     # Ensure APT's "_apt" user can access the files.
