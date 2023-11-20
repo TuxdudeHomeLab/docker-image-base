@@ -119,16 +119,6 @@ setup_apt() {
         /etc/dpkg/dpkg.cfg.d/path_exclusions
 }
 
-setup_tuxdude_gpg_key() {
-    install_packages gnupg1
-    gpg1 --verbose --keyserver hkps://keys.openpgp.org --recv-keys ${TUXDUDE_GPG_KEY:?}
-}
-
-cleanup_tuxdude_gpg_key() {
-    rm -rf $HOME/.gnupg
-    remove_packages gnupg1
-}
-
 arch_for_tuxdude_go_pkg() {
     local platform="$(uname -m)"
     case "${platform:?}" in
@@ -159,7 +149,8 @@ install_picoinit() {
 }
 
 install_tuxdude_go_package() {
-    setup_tuxdude_gpg_key
+    install_gpg
+    download_gpg_key "hkps://keys.openpgp.org" "${TUXDUDE_GPG_KEY:?}"
     local download_dir="$(mktemp -d)"
     mkdir -p ${download_dir:?}
 
@@ -189,7 +180,7 @@ install_tuxdude_go_package() {
     popd
 
     rm -rf ${download_dir:?}
-    cleanup_tuxdude_gpg_key
+    cleanup_gpg
 }
 
 add_user() {
@@ -298,17 +289,35 @@ install_s6() {
     download_and_install_s6 "${platform:?}"
 }
 
-install_pkg_gpg_key() {
-    local gpg_key="${1:?}"
-    local keyserver="hkp://keyserver.ubuntu.com:80"
-    homelab install gnupg1
+export_gpg_key() {
+    local keyserver="${1:?}"
+    local gpg_key="${2:?}"
+    local gpg_key_export_path="${3:?}"
+
+    install_gpg
+    download_gpg_key "${keyserver:?}" "${gpg_key:?}"
+    gpg1 --export "${gpg_key:?}" > "${gpg_key_export_path:?}"
+    cleanup_gpg
+}
+
+install_gpg() {
+    install_packages gnupg1
+}
+
+download_gpg_key() {
+    local keyserver="${1:?}"
+    local gpg_key="${2:?}"
 
     echo "Fetching GPG key $gpg_key from $keyserver"
-    apt-key adv \
+    gpg1 --verbose \
         --keyserver "$keyserver" \
         --keyserver-options timeout=10 \
         --recv-keys "${gpg_key:?}"
-    apt-get remove --purge --auto-remove -y gnupg1
+}
+
+cleanup_gpg() {
+    rm -rf "$HOME/.gnupg"
+    remove_packages gnupg1
 }
 
 random_file_name() {
@@ -467,8 +476,9 @@ case "$1" in
     "install-git-repo")
         install_git_repo "${@:2}"
         ;;
-    "install-pkg-gpg-key")
-        install_pkg_gpg_key "${@:2}"
+    "export-gpg-key")
+        update_repo
+        export_gpg_key "${@:2}"
         cleanup_post_package_op
         ;;
     "install-pkg-from-deb-src")
