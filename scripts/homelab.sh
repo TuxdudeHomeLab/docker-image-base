@@ -189,12 +189,17 @@ add_user() {
     local group_name=${3:?}
     local group_id=${4:?}
     local create_home_dir=""
-    if [[ "$5" == "--create-home-dir" ]]; then
-        create_home_dir="--create-home "
+    local system_user=""
+    if [[ "$5" == "--create-home-dir" || "$6" == "--create-home-dir" ]]; then
+        create_home_dir="--create-home"
+    fi
+    if [[ "$5" == "--system-user" || "$6" == "--system-user" ]]; then
+        system_user="--system "
     fi
     groupadd --gid ${group_id:?} ${group_name:?}
     useradd \
         ${create_home_dir} \
+        ${system_user} \
         --shell /bin/bash \
         --uid ${user_id:?} \
         --gid ${group_id:?} \
