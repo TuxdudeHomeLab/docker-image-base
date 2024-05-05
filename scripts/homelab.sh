@@ -10,6 +10,9 @@ export DEBIAN_FRONTEND=noninteractive
 TUXDUDE_GPG_KEY="8D458AC08D2CE9CE"
 PICOINIT_VERSION=0.2.1
 
+PYENV_VERSION=2.4.0
+PYENV_SHA256_CHECKSUM=48d3abc38e2c091809c640cedf33437593873a6dcb8da2a3ffb1ccd0220d9292
+
 S6_OVERLAY_VERSION=3.0.0.2
 S6_OVERLAY_CHECKSUM_NOARCH=17880e4bfaf6499cd1804ac3a6e245fd62bc2234deadf8ff4262f4e01e3ee521
 S6_OVERLAY_CHECKSUM_X86_64=a4c039d1515812ac266c24fe3fe3c00c48e3401563f7f11d09ac8e8b4c2d0b0c
@@ -262,6 +265,34 @@ install_git_repo() {
     popd >/dev/null
 }
 
+install_python() {
+    local python_version="${1:?}"
+
+    update_repo
+    install_packages build-essential libbz2-dev libffi-dev liblzma-dev libncurses5-dev libreadline-dev libsqlite3-dev libssl-dev zlib1g-dev
+
+    install_tar_dist \
+        https://github.com/pyenv/pyenv/archive/refs/tags/v${PYENV_VERSION:?}.tar.gz \
+        ${PYENV_SHA256_CHECKSUM:?} \
+        pyenv \
+        pyenv-${PYENV_VERSION:?} \
+        root \
+        root
+    pushd /opt/pyenv
+    src/configure
+    make -C src
+    popd
+
+    export PYENV_ROOT="/opt/pyenv"
+    export PATH="${PYENV_ROOT:?}/shims:${PYENV_ROOT:?}/bin:${PATH}"
+
+    eval "$(pyenv init -)"
+    pyenv install ${python_version:?}
+    pyenv global ${python_version:?}
+
+    cleanup_post_package_op
+}
+
 # Docker platform to uname arch mapping
 # "linux/amd64"     "amd64"
 # "linux/386"       "x86"
@@ -479,6 +510,9 @@ case "$1" in
         ;;
     "install-git-repo")
         install_git_repo "${@:2}"
+        ;;
+    "install-python")
+        install_python "${@:2}"
         ;;
     "export-gpg-key")
         update_repo
