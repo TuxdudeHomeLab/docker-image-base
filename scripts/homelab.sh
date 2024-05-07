@@ -10,9 +10,6 @@ export DEBIAN_FRONTEND=noninteractive
 TUXDUDE_GPG_KEY="8D458AC08D2CE9CE"
 PICOINIT_VERSION=0.2.1
 
-PYENV_VERSION=2.4.0
-PYENV_SHA256_CHECKSUM=48d3abc38e2c091809c640cedf33437593873a6dcb8da2a3ffb1ccd0220d9292
-
 DEBIAN_RELEASE="$(dpkg --status tzdata | awk -F'[:-]' '$1=="Provides"{print $NF}')"
 
 script_name="$(basename "$(realpath "${BASH_SOURCE[0]}")")"
@@ -260,34 +257,6 @@ install_git_repo() {
     popd >/dev/null
 }
 
-install_python() {
-    local python_version="${1:?}"
-
-    update_repo
-    install_packages build-essential libbz2-dev libffi-dev liblzma-dev libncurses5-dev libreadline-dev libsqlite3-dev libssl-dev zlib1g-dev
-
-    install_tar_dist \
-        https://github.com/pyenv/pyenv/archive/refs/tags/v${PYENV_VERSION:?}.tar.gz \
-        ${PYENV_SHA256_CHECKSUM:?} \
-        pyenv \
-        pyenv-${PYENV_VERSION:?} \
-        root \
-        root
-    pushd /opt/pyenv
-    src/configure
-    make -C src
-    popd
-
-    export PYENV_ROOT="/opt/pyenv"
-    export PATH="${PYENV_ROOT:?}/shims:${PYENV_ROOT:?}/bin:${PATH}"
-
-    eval "$(pyenv init -)"
-    pyenv install ${python_version:?}
-    pyenv global ${python_version:?}
-
-    cleanup_post_package_op
-}
-
 # Docker platform to uname arch mapping
 # "linux/amd64"     "amd64"
 # "linux/386"       "x86"
@@ -480,9 +449,6 @@ case "$1" in
         ;;
     "install-git-repo")
         install_git_repo "${@:2}"
-        ;;
-    "install-python")
-        install_python "${@:2}"
         ;;
     "export-gpg-key")
         update_repo
