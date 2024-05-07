@@ -8,7 +8,7 @@ export DEBIAN_FRONTEND=noninteractive
 # on the right environment variables (and/or Docker args) to
 # be set in the child images.
 TUXDUDE_GPG_KEY="8D458AC08D2CE9CE"
-PICOINIT_VERSION=0.2.1
+PICOINIT_VERSION=0.2.2
 
 DEBIAN_RELEASE="$(dpkg --status tzdata | awk -F'[:-]' '$1=="Provides"{print $NF}')"
 
