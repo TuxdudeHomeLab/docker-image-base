@@ -25,6 +25,8 @@ RUN \
 FROM scratch
 COPY --from=rootfs / /
 
+# hadolint ignore=DL3002
+USER root
 SHELL ["/bin/bash", "-c"]
 ENV PATH="/opt/bin:${PATH}"
 ENTRYPOINT ["picoinit"]
