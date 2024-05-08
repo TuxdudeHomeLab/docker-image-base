@@ -136,6 +136,8 @@ jobs:
           context: .
           platforms: ${{env.PLATFORMS}}
           push: true
+          provenance: mode=max
+          sbom: true
           tags: |
             ${{ env.DOCKERHUB_REPO_NAME }}:${{ env.DOCKERHUB_PUBLISH_TAG }}
             ${{ env.GHCR_REPO_NAME }}:${{ env.DOCKERHUB_PUBLISH_TAG }}
