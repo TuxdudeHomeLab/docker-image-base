@@ -230,6 +230,34 @@ install_tar_dist() {
     popd >/dev/null
 }
 
+install_bin() {
+    local download_url="${1:?}"
+    local download_checksum="${2:?}"
+    local download_file_name="${3:?}"
+    local package_name="${4:?}"
+    local symlink_to="${5:?}"
+    local owner_user="${6:?}"
+    local owner_group="${7:?}"
+    local install_dir="${base_install_dir:?}/${package_name:?}"
+    local bin_file="/tmp/file-$(date +'%Y-%m-%d_%H-%M-%S.%3N')"
+
+    # Prepare the install directory.
+    rm -rf ${install_dir:?}
+    mkdir -p ${install_dir:?}
+
+    # Download and unpack the binary.
+    curl --silent --location --output ${bin_file:?} ${download_url:?}
+    echo "${download_checksum:?} ${bin_file:?}" | sha256sum -c
+    chmod +x ${bin_file:?}
+    mv ${bin_file:?} ${install_dir:?}/${download_file_name:?}
+
+    # Set up symlinks.
+    ln -s ${install_dir:?}/${download_file_name:?} ${symlink_to:?}
+
+    # Make the installed directory owned by the specified user and the group.
+    chown -R ${owner_user:?}:${owner_group:?} ${install_dir:?}
+}
+
 install_git_repo() {
     local git_repo_url="${1:?}"
     local git_branch_or_tag="${2:?}"
@@ -446,6 +474,9 @@ case "$1" in
         ;;
     "install-tar-dist")
         install_tar_dist "${@:2}"
+        ;;
+    "install-bin")
+        install_bin "${@:2}"
         ;;
     "install-git-repo")
         install_git_repo "${@:2}"
