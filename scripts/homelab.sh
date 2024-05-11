@@ -37,6 +37,7 @@ update_repo() {
 install_packages() {
     apt-get install \
         --assume-yes \
+        --no-install-suggests \
         --no-install-recommends \
         ${@}
 }
