@@ -17,7 +17,7 @@ get_latest_tag() {
 }
 
 get_next_semantic_ver() {
-    echo "${1:?}" | awk -F. -v OFS=. '{$NF += 1 ; print}'
+    echo "${1:?}" | sed -E 's#^v([0-9]+)\.([0-9]+)\.([0-9]+)-.+$#v\1.\2.\3#g' | awk -F. -v OFS=. '{$NF += 1 ; print}'
 }
 
 get_image_version() {
