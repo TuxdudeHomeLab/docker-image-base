@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Usage:
+#   prepare-release.sh
+#   prepare-release.sh v0.1.1
 
 set -e -o pipefail
 
@@ -20,9 +23,13 @@ get_next_semantic_ver() {
     echo "${1:?}" | sed -E 's#^v([0-9]+)\.([0-9]+)\.([0-9]+)-.+$#v\1.\2.\3#g' | awk -F. -v OFS=. '{$NF += 1 ; print}'
 }
 
-get_image_version() {
+get_package_version() {
     get_config_arg "${1:?}"
 }
+
+pkg="Debian"
+tag_pkg="debian"
+config_arg_pkg_version="UPSTREAM_IMAGE_TAG"
 
 if [ -z "$1" ]; then
     # Generate the next semantic version number if version number is not supplied.
@@ -31,7 +38,7 @@ else
     # Use the supplied version number from the command line arg.
     rel_ver="${1:?}"
 fi
-upstream_image_ver="$(get_image_version UPSTREAM_IMAGE_TAG)"
+pkg_ver="$(get_package_version ${config_arg_pkg_version:?})"
 
-echo "Creating tag ${rel_ver:?}-${tag_pkg}-${upstream_image_ver:?}"
-git githubtag -m "New release based off ${upstream_image_ver:?} upstream image." ${rel_ver:?}-${upstream_image_ver:?}
+echo "Creating tag ${rel_ver:?}-${pkg_ver:?}"
+git githubtag -m "${rel_ver:?} release based off ${pkg:?} ${pkg_ver:?}." ${rel_ver:?}-${pkg_ver:?}
