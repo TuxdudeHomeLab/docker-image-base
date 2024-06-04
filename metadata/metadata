@@ -2,3 +2,5 @@
 set -e -o pipefail
 
 # Add repo specific metadata here.
+
+UPSTREAM_IMAGE_CONFIG_KEY_PREFIX="UPSTREAM_IMAGE"
