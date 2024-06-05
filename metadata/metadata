@@ -4,3 +4,15 @@ set -e -o pipefail
 # Add repo specific metadata here.
 
 UPSTREAM_IMAGE_CONFIG_KEY_PREFIX="UPSTREAM_IMAGE"
+TEST_TYPE="foreground"
+TEST_CONTAINER_TYPE="base"
+
+test_start_container() {
+    local container_name="${1:?}"
+    docker run \
+        --name ${container_name:?} \
+        --rm \
+        ${IMAGE:?} \
+        sh -c \
+        'apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install nginx'
+}
