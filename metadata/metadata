@@ -3,9 +3,29 @@ set -e -o pipefail
 
 # Add repo specific metadata here.
 
+PACKAGE_NAME="Debian"
 UPSTREAM_IMAGE_CONFIG_KEY_PREFIX="UPSTREAM_IMAGE"
+UPSTREAM_VERSION_CONFIG_KEY="UPSTREAM_IMAGE_TAG"
+UPSTREAM_IMAGE_PATTERN='bookworm-([0-9]+)-slim'
 TEST_TYPE="foreground"
 TEST_CONTAINER_TYPE="base"
+
+current_upstream_version() {
+    get_config_arg ${UPSTREAM_VERSION_CONFIG_KEY:?}
+}
+
+latest_upstream_version() {
+    local repo="$(get_config_arg "${UPSTREAM_IMAGE_CONFIG_KEY_PREFIX}_NAME")"
+    dockerhub_latest_tag "${repo:?}" "${UPSTREAM_IMAGE_PATTERN:?}"
+}
+
+update_latest_upstream_version() {
+    local cur_ver="${1:?}"
+    local latest_ver="${2:?}"
+    echo "Updating ${PACKAGE_NAME:?} ${UPSTREAM_VERSION_CONFIG_KEY:?} '${cur_ver:?}' -> '${latest_ver:?}'"
+    set_config_arg "${UPSTREAM_VERSION_CONFIG_KEY:?}" "${latest_ver:?}"
+    git add ${ARGS_FILE:?}
+}
 
 test_start_container() {
     local container_name="${1:?}"
