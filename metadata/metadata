@@ -18,7 +18,7 @@ current_upstream_version() {
 }
 
 latest_upstream_version() {
-    latest_upstream_image_tag
+    latest_base_image_tag
 }
 
 update_latest_upstream_version() {
