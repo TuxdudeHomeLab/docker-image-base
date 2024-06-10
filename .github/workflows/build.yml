@@ -24,7 +24,6 @@ permissions:
   packages: write
 
 env:
-  PLATFORMS: linux/amd64,linux/arm64/v8
   DOCKERHUB_TEST_TAG: ci-test
 
 jobs:
@@ -134,7 +133,7 @@ jobs:
           )
         with:
           context: .
-          platforms: ${{env.PLATFORMS}}
+          platforms: ${{env.IMAGE_SUPPORTED_DOCKER_PLATFORMS}}
           push: true
           provenance: mode=max
           sbom: true
@@ -155,7 +154,7 @@ jobs:
           )
         with:
           context: .
-          platforms: ${{env.PLATFORMS}}
+          platforms: ${{env.IMAGE_SUPPORTED_DOCKER_PLATFORMS}}
           push: false
           tags: ${{ env.DOCKERHUB_REPO_NAME }}:${{ env.DOCKERHUB_TEST_TAG }}
           build-args: ${{ steps.docker_build_args.outputs.build_args }}
