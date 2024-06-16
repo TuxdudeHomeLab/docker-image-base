@@ -11,7 +11,7 @@ ARG PACKAGES_TO_INSTALL
 ARG PACKAGES_TO_REMOVE
 
 RUN \
-    set -e -o pipefail \
+    set -E -e -o pipefail \
     # Setup the homelab utility along with installing \
     # packages which will help with debugging. \
     && /opt/homelab/homelab.sh setup ${PACKAGES_TO_INSTALL:? }\
