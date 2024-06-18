@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -x -e -o pipefail
+set -x -E -e -o pipefail
 
 export DEBIAN_FRONTEND=noninteractive
 
