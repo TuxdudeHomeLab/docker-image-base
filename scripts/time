@@ -5,8 +5,28 @@ nowEpoch() {
     date +%s.%N
 }
 
+nowEpochMs() {
+    date +%s.%3N
+}
+
 offsetEpoch() {
     date -d "${1:?}" +%s.%N
+}
+
+offsetEpochMs() {
+    date -d "${1:?}" +%s.%3N
+}
+
+durationFromEpoch() {
+    local start="${1:?}"
+    local end="$(nowEpoch)"
+    echo "${end:?} - ${start:?}" | bc
+}
+
+durationFromEpochMs() {
+    local start="${1:?}"
+    local end="$(nowEpochMs)"
+    echo "${end:?} - ${start:?}" | bc
 }
 
 sleepUntil() {
