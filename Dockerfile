@@ -5,7 +5,7 @@ FROM ${UPSTREAM_IMAGE_NAME}:${UPSTREAM_IMAGE_TAG} as rootfs
 SHELL ["/bin/bash", "-c"]
 ENV PATH="/opt/bin:${PATH}"
 
-COPY scripts/homelab.sh /opt/homelab/
+COPY scripts /opt/homelab/scripts
 
 ARG PACKAGES_TO_INSTALL
 ARG PACKAGES_TO_REMOVE
@@ -14,7 +14,7 @@ RUN \
     set -E -e -o pipefail \
     # Setup the homelab utility along with installing \
     # packages which will help with debugging. \
-    && /opt/homelab/homelab.sh setup ${PACKAGES_TO_INSTALL:? }\
+    && /opt/homelab/scripts/homelab.sh setup ${PACKAGES_TO_INSTALL:? } \
     # Set up en_US.UTF-8 locale \.
     # locale package is part of PACKAGES_TO_INSTALL. \
     && homelab setup-en-us-utf8-locale \
