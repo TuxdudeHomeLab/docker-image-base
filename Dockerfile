@@ -27,7 +27,9 @@ COPY --from=rootfs / /
 
 # hadolint ignore=DL3002
 USER root
-SHELL ["/bin/bash", "-c"]
 ENV PATH="/opt/bin:${PATH}"
+
+SHELL ["/bin/bash", "-c"]
 ENTRYPOINT ["picoinit"]
 CMD ["bash"]
+STOPSIGNAL SIGHUP
