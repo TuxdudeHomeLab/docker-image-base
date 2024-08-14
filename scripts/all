@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -E -e -o pipefail
 
-script_dir="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
-source ${script_dir:?}/logger
-source ${script_dir:?}/time
+source_all() {
+    local script_dir="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+    source ${script_dir:?}/logger
+    source ${script_dir:?}/time
+}
+
+source_all && unset -f source_all

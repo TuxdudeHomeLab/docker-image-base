@@ -27,6 +27,13 @@ FORMAT_ANY_RESET="${FORMAT_PREFIX:?}${FORMAT_OPTION_RESET:?}${FORMAT_SUFFIX:?}"
 
 TIMESTAMP_FORMAT="+%Y-%m-%dT%T.%3N%z"
 
+# 0 - Fatal, Err
+# 1 - Fatal, Err, Warn
+# 2 - Fatal, Err, Warn, Info
+# 3 - Fatal, Err, Warn, Info, Debug
+# 4 - Fatal, Err, Warn, Info, Debug, Trace
+LOGGER_LEVEL=2
+
 logFatal() {
     echo -e "$(date "${TIMESTAMP_FORMAT:?}")  ${FORMAT_FATAL:?}FATAL${FORMAT_ANY_RESET:?} " "$@"
     exit 1
@@ -37,17 +44,49 @@ logErr() {
 }
 
 logWarn() {
-    echo -e "$(date "${TIMESTAMP_FORMAT:?}")  ${FORMAT_WARN:?}WARN${FORMAT_ANY_RESET:?}  " "$@"
+    if [ "${LOGGER_LEVEL:?}" -gt 0 ]; then
+        echo -e "$(date "${TIMESTAMP_FORMAT:?}")  ${FORMAT_WARN:?}WARN${FORMAT_ANY_RESET:?}  " "$@"
+    fi
 }
 
 logInfo() {
-    echo -e "$(date "${TIMESTAMP_FORMAT:?}")  ${FORMAT_INFO:?}INFO${FORMAT_ANY_RESET:?}  " "$@"
+    if [ "${LOGGER_LEVEL:?}" -gt 1 ]; then
+        echo -e "$(date "${TIMESTAMP_FORMAT:?}")  ${FORMAT_INFO:?}INFO${FORMAT_ANY_RESET:?}  " "$@"
+    fi
 }
 
 logDebug() {
-    echo -e "$(date "${TIMESTAMP_FORMAT:?}")  ${FORMAT_DEBUG:?}DEBUG${FORMAT_ANY_RESET:?} " "$@"
+    if [ "${LOGGER_LEVEL:?}" -gt 2 ]; then
+        echo -e "$(date "${TIMESTAMP_FORMAT:?}")  ${FORMAT_DEBUG:?}DEBUG${FORMAT_ANY_RESET:?} " "$@"
+    fi
 }
 
 logTrace() {
-    echo -e "$(date "${TIMESTAMP_FORMAT:?}")  ${FORMAT_TRACE:?}TRACE${FORMAT_ANY_RESET:?} " "$@"
+    if [ "${LOGGER_LEVEL:?}" -gt 3 ]; then
+        echo -e "$(date "${TIMESTAMP_FORMAT:?}")  ${FORMAT_TRACE:?}TRACE${FORMAT_ANY_RESET:?} " "$@"
+    fi
+}
+
+logEmpty() {
+    if [ "${LOGGER_LEVEL:?}" -gt 0 ]; then
+        echo
+    fi
+}
+
+logEmptyInfo() {
+    if [ "${LOGGER_LEVEL:?}" -gt 1 ]; then
+        echo
+    fi
+}
+
+logEmptyDebug() {
+    if [ "${LOGGER_LEVEL:?}" -gt 2 ]; then
+        echo
+    fi
+}
+
+logEmptyTrace() {
+    if [ "${LOGGER_LEVEL:?}" -gt 3 ]; then
+        echo
+    fi
 }
