@@ -92,6 +92,46 @@ install_node() {
     nvm install ${nodejs_version:?}
 }
 
+install_python() {
+    update_repo
+    install_packages \
+        build-essential \
+        libbz2-dev \
+        libffi-dev \
+        liblzma-dev \
+        libncurses5-dev \
+        libreadline-dev \
+        libsqlite3-dev \
+        libssl-dev \
+        zlib1g-dev
+    install_python_without_deps "$@"
+}
+
+install_python_without_deps() {
+    local pyenv_version="${1:?}"
+    local pyenv_sha256_checksum="${2:?}"
+    local python_version="${3:?}"
+
+    install_tar_dist \
+        https://github.com/pyenv/pyenv/archive/refs/tags/${pyenv_version:?}.tar.gz \
+        ${pyenv_sha256_checksum:?} \
+        pyenv \
+        pyenv-${pyenv_version#"v"} \
+        root \
+        root
+
+    pushd /opt/pyenv && src/configure && make -C src && popd
+
+    export PYENV_ROOT="/opt/pyenv"
+    export PATH="${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:${PATH}"
+    eval "$(pyenv init -)"
+    PYTHON_CONFIGURE_OPTS="--enable-optimizations --with-lto" \
+        PYTHON_CFLAGS="-march=native -mtune=native" \
+        PROFILE_TASK="-m test.regrtest --pgo -j0" \
+        pyenv install ${python_version:?}
+    pyenv global ${python_version:?}
+}
+
 configure_en_us_utf8_locale() {
     # Set up en_US.UTF-8 locale.
     sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
@@ -517,6 +557,14 @@ case "$1" in
         ;;
     "install-node")
         install_node "${@:2}"
+        cleanup_post_package_op
+        ;;
+    "install-python")
+        install_python "${@:2}"
+        cleanup_post_package_op
+        ;;
+    "install-python-without-deps")
+        install_python_without_deps "${@:2}"
         cleanup_post_package_op
         ;;
     *)
