@@ -9,6 +9,7 @@ export DEBIAN_FRONTEND=noninteractive
 # be set in the child images.
 TUXDUDE_GPG_KEY="8D458AC08D2CE9CE"
 PICOINIT_VERSION=0.2.2
+GOOGLE_LINUX_PACKAGE_GPG_KEY="EB4C 1BFD 4F04 2F6D DDCC  EC91 7721 F63B D38B 4796"
 
 DEBIAN_RELEASE="$(dpkg --status tzdata | awk -F'[:-]' '$1=="Provides"{print $NF}')"
 
@@ -74,6 +75,64 @@ cleanup_post_package_op() {
         /usr/share/info/* \
         /usr/share/man/* \
         /usr/share/pixmaps*
+}
+
+install_go() {
+    local go_version="${1:?}"
+    local amd64_sha256_checksum="${2:?}"
+    local arm64_sha256_checksum="${3:?}"
+    local pkg_arch="$(dpkg --print-architecture)"
+
+    # Install dependencies.
+    update_repo
+    install_packages gnupg
+
+    # Download the release.
+    mkdir -p /tmp/go-download
+    curl \
+        --silent \
+        --fail \
+        --location \
+        --remote-name \
+        --output-dir /tmp/go-download https://go.dev/dl/go${go_version:?}.linux-${pkg_arch:?}.tar.gz
+    curl \
+        --silent \
+        --fail \
+        --location \
+        --remote-name \
+        --output-dir /tmp/go-download https://go.dev/dl/go${go_version:?}.linux-${pkg_arch:?}.tar.gz.asc
+
+    # Download the public keys for verification.
+    gpg \
+        --batch \
+        --keyserver hkp://keyserver.ubuntu.com \
+        --recv-keys "${GOOGLE_LINUX_PACKAGE_GPG_KEY:?}"
+
+    # Download and validate the signatures of the packages.
+    gpg \
+        --verbose \
+        --verify \
+        /tmp/go-download/go${go_version:?}.linux-${pkg_arch:?}.tar.gz.asc
+    if [[ "${pkg_arch:?}" == "amd64" ]]; then
+        local go_sha256_checksum=${amd64_sha256_checksum:?};
+    elif [[ "${pkg_arch:?}" == "arm64" ]]; then
+        local go_sha256_checksum=${arm64_sha256_checksum:?};
+    else
+        echo "Unsupported arch ${pkg_arch:?} for checksum";
+        exit 1;
+    fi
+    echo "${go_sha256_checksum:?} /tmp/go-download/go${go_version:?}.linux-${pkg_arch:?}.tar.gz" |\
+        sha256sum -c
+
+    # Unpack and install the release.
+    tar -C /opt -xvf /tmp/go-download/go${go_version:?}.linux-${pkg_arch:?}.tar.gz
+
+    # Setup misc directories.
+    mkdir -p /go /go/src /go/bin
+
+    # Clean up.
+    rm -rf /tmp/go-download
+    remove_packages gnupg
 }
 
 install_node() {
@@ -553,6 +612,10 @@ case "$1" in
         ;;
     "install-deb-pkg")
         install_deb_pkg "${@:2}"
+        cleanup_post_package_op
+        ;;
+    "install-go")
+        install_go "${@:2}"
         cleanup_post_package_op
         ;;
     "install-node")
