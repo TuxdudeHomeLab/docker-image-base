@@ -76,6 +76,22 @@ cleanup_post_package_op() {
         /usr/share/pixmaps*
 }
 
+install_node() {
+    local nvm_version="${1:?}"
+    local nvm_sha256_checksum="${2:?}"
+    local nodejs_version="${3:?}"
+
+    install_tar_dist \
+        https://github.com/nvm-sh/nvm/archive/refs/tags/${nvm_version:?}.tar.gz \
+        ${nvm_sha256_checksum:?} \
+        nvm \
+        nvm-${nvm_version#"v"} \
+        root \
+        root
+    source "/opt/nvm/nvm.sh"
+    nvm install ${nodejs_version:?}
+}
+
 configure_en_us_utf8_locale() {
     # Set up en_US.UTF-8 locale.
     sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
@@ -497,6 +513,10 @@ case "$1" in
         ;;
     "install-deb-pkg")
         install_deb_pkg "${@:2}"
+        cleanup_post_package_op
+        ;;
+    "install-node")
+        install_node "${@:2}"
         cleanup_post_package_op
         ;;
     *)
