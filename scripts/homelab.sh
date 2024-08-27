@@ -3,29 +3,23 @@ set -x -E -e -o pipefail
 
 export DEBIAN_FRONTEND=noninteractive
 
-# These variables are set here directly to allow the child
-# images to directly invoke these commands without a dependency
-# on the right environment variables (and/or Docker args) to
-# be set in the child images.
-TUXDUDE_GPG_KEY="8D458AC08D2CE9CE"
-PICOINIT_VERSION=0.2.2
-GOOGLE_LINUX_PACKAGE_GPG_KEY="EB4C 1BFD 4F04 2F6D DDCC  EC91 7721 F63B D38B 4796"
-
-DEBIAN_RELEASE="$(dpkg --status tzdata | awk -F'[:-]' '$1=="Provides"{print $NF}')"
-
-script_name="$(basename "$(realpath "${BASH_SOURCE[0]}")")"
-script_parent_dir="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
-script_abs_path="${script_parent_dir:?}/${script_name:?}"
-
 base_install_dir="/opt"
 deb_pkgs_dir="/deb-pkgs"
 
 init() {
+    local script_name="$(basename "$(realpath "${BASH_SOURCE[0]}")")"
+    local script_parent_dir="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+    local script_abs_path="${script_parent_dir:?}/${script_name:?}"
+
     mkdir -p ${base_install_dir:?}/bin
     ln -sf ${script_abs_path:?} ${base_install_dir:?}/bin/homelab
 }
 
 destroy() {
+    local script_name="$(basename "$(realpath "${BASH_SOURCE[0]}")")"
+    local script_parent_dir="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+    local script_abs_path="${script_parent_dir:?}/${script_name:?}"
+
     rm -f ${base_install_dir:?}/bin/homelab
     rm -f ${script_abs_path}
 }
@@ -78,6 +72,8 @@ cleanup_post_package_op() {
 }
 
 install_go() {
+    local google_linux_package_gpg_key="EB4C 1BFD 4F04 2F6D DDCC  EC91 7721 F63B D38B 4796"
+
     local go_version="${1:?}"
     local amd64_sha256_checksum="${2:?}"
     local arm64_sha256_checksum="${3:?}"
@@ -110,7 +106,7 @@ install_go() {
     gpg \
         --batch \
         --keyserver hkp://keyserver.ubuntu.com \
-        --recv-keys "${GOOGLE_LINUX_PACKAGE_GPG_KEY:?}"
+        --recv-keys "${google_linux_package_gpg_key:?}"
 
     # Download and validate the signatures of the packages.
     gpg \
@@ -259,12 +255,15 @@ arch_for_tuxdude_go_pkg() {
 }
 
 install_picoinit() {
-    install_tuxdude_go_package "Tuxdude/picoinit" "${PICOINIT_VERSION:?}"
+    local picoinit_version="0.2.2"
+    install_tuxdude_go_package "Tuxdude/picoinit" "${picoinit_version:?}"
 }
 
 install_tuxdude_go_package() {
+    local tuxdude_gpg_key="8D458AC08D2CE9CE"
+
     install_gpg
-    download_gpg_key "hkps://keys.openpgp.org" "${TUXDUDE_GPG_KEY:?}"
+    download_gpg_key "hkps://keys.openpgp.org" "${tuxdude_gpg_key:?}"
     local download_dir="$(mktemp -d)"
     mkdir -p ${download_dir:?}
 
@@ -549,8 +548,9 @@ build_pkg_from_std_deb_src() {
     local src_repo_file="${apt_repo_base_path:?}/src_$(random_file_name).sources"
     local build_dir="$(mktemp -d)"
 
-    local main_src_repo="Types: deb-src\nURIs: http://deb.debian.org/debian\nSuites: ${DEBIAN_RELEASE:?} ${DEBIAN_RELEASE:?}-updates\nComponents: main contrib non-free\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg"
-    local security_src_repo="Types: deb-src\nURIs: http://deb.debian.org/debian-security\nSuites: ${DEBIAN_RELEASE:?}-security\nComponents: main contrib non-free\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg"
+    local debian_release="$(dpkg --status tzdata | awk -F'[:-]' '$1=="Provides"{print $NF}')"
+    local main_src_repo="Types: deb-src\nURIs: http://deb.debian.org/debian\nSuites: ${debian_release:?} ${debian_release:?}-updates\nComponents: main contrib non-free\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg"
+    local security_src_repo="Types: deb-src\nURIs: http://deb.debian.org/debian-security\nSuites: ${debian_release:?}-security\nComponents: main contrib non-free\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg"
 
     echo -e "${main_src_repo:?}\n\n${security_src_repo:?}\n\n" > \
         ${src_repo_file:?}
