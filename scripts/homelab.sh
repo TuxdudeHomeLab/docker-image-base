@@ -93,14 +93,18 @@ install_go() {
         --silent \
         --fail \
         --location \
+        --show-error \
         --remote-name \
-        --output-dir /tmp/go-download https://go.dev/dl/go${go_version:?}.linux-${pkg_arch:?}.tar.gz
+        --output-dir /tmp/go-download \
+        https://go.dev/dl/go${go_version:?}.linux-${pkg_arch:?}.tar.gz
     curl \
         --silent \
         --fail \
         --location \
+        --show-error \
         --remote-name \
-        --output-dir /tmp/go-download https://go.dev/dl/go${go_version:?}.linux-${pkg_arch:?}.tar.gz.asc
+        --output-dir /tmp/go-download \
+        https://go.dev/dl/go${go_version:?}.linux-${pkg_arch:?}.tar.gz.asc
 
     # Download the public keys for verification.
     gpg \
@@ -276,7 +280,13 @@ install_tuxdude_go_package() {
 
     echo "Downloading ${pkg_name:?} for \"${arch:?}\" v${version:?}"
     for url in "${tar_url:?}"  "${tar_sig_url:?}" "${checksums_url:?}" "${checksums_sig_url:?}"; do
-        curl --silent --fail --location --show-error --remote-name --output-dir ${download_dir:?} ${url:?}
+        curl \
+            --silent \
+            --fail \
+            --location \
+            --show-error \
+            --remote-name \
+            --output-dir ${download_dir:?} ${url:?}
     done
 
     pushd ${download_dir:?}
@@ -332,7 +342,13 @@ install_tar_dist() {
     pushd ${base_install_dir:?} >/dev/null
 
     # Download and unpack the release.
-    curl --silent --fail --location --show-error --output ${tar_file:?} ${download_url:?}
+    curl \
+        --silent \
+        --fail \
+        --location \
+        --show-error \
+        --output ${tar_file:?} \
+        ${download_url:?}
     echo "${download_checksum:?} ${tar_file:?}" | sha256sum -c
     tar -xf ${tar_file:?}
     rm ${tar_file:?}
@@ -362,7 +378,13 @@ install_bin() {
     mkdir -p ${install_dir:?}
 
     # Download and unpack the binary.
-    curl --silent --fail --location --show-error --output ${bin_file:?} ${download_url:?}
+    curl \
+        --silent \
+        --fail \
+        --location \
+        --show-error \
+        --output ${bin_file:?} \
+        ${download_url:?}
     echo "${download_checksum:?} ${bin_file:?}" | sha256sum -c
     chmod +x ${bin_file:?}
     mv ${bin_file:?} ${install_dir:?}/${download_file_name:?}
