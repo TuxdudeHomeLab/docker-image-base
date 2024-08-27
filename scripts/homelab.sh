@@ -588,6 +588,17 @@ install_deb_pkg() {
     install_packages ${@}
 }
 
+healthcheck_service() {
+    local service_url="${1:?}"
+    curl \
+        --silent \
+        --fail \
+        --location \
+        --show-error \
+        --insecure \
+        "${service_url:?}"
+}
+
 case "$1" in
     "setup")
         init
@@ -668,6 +679,9 @@ case "$1" in
     "install-python-without-deps")
         install_python_without_deps "${@:2}"
         cleanup_post_package_op
+        ;;
+    "healthcheck-service")
+        healthcheck_service "${@:2}"
         ;;
     *)
         echo "Invalid command \"$1\""
