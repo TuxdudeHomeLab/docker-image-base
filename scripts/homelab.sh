@@ -403,23 +403,38 @@ install_git_repo() {
     local symlink_to="${4:?}"
     local owner_user="${5:?}"
     local owner_group="${6:?}"
+    local download_dir="${base_install_dir:?}/${symlink_to:?}"
     local install_dir="${base_install_dir:?}/${package_name:?}"
 
-    # Prepare the install directory.
-    rm -rf ${install_dir:?}
-    mkdir -p ${base_install_dir:?}
-    pushd ${base_install_dir:?} >/dev/null
-
-    # Clone the git repository.
-    git clone --depth 1 --branch ${git_branch_or_tag:?} ${git_repo_url:?} ${symlink_to:?}
+    # Download the git repository.
+    download_git_repo \
+        "${git_repo_url:?}" \
+        "${git_branch_or_tag:?}" \
+        "${download_dir:?}"
 
     # Set up symlinks.
-    ln -s ${symlink_to:?} ${package_name:?}
+    ln -s ${symlink_to:?} ${install_dir:?}
 
     # Make the installed directory owned by the specified user and the group.
     chown -R ${owner_user:?}:${owner_group:?} ${install_dir:?}
+}
 
-    popd >/dev/null
+download_git_repo() {
+    local git_repo_url="${1:?}"
+    local git_branch_or_tag="${2:?}"
+    local download_dir="${3:?}"
+
+    # Prepare the download directory.
+    rm -rf ${download_dir:?}
+    mkdir -p ${download_dir:?}
+
+    # Clone the git repository.
+    git clone \
+        --quiet \
+        --depth 1 \
+        --branch ${git_branch_or_tag:?} \
+        ${git_repo_url:?} \
+        ${download_dir:?}
 }
 
 # Docker platform to uname arch mapping
@@ -617,6 +632,9 @@ case "$1" in
         ;;
     "install-git-repo")
         install_git_repo "${@:2}"
+        ;;
+    "download-git-repo")
+        download_git_repo "${@:2}"
         ;;
     "export-gpg-key")
         update_repo
