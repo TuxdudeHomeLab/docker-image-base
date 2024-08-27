@@ -14,6 +14,7 @@ ARG PACKAGES_TO_REMOVE
 
 RUN \
     set -E -e -o pipefail \
+    && export HOMELAB_VERBOSE=y \
     # Setup the homelab utility along with installing \
     # packages which will help with debugging. \
     && /opt/homelab/scripts/homelab.sh setup ${PACKAGES_TO_INSTALL:? } \
