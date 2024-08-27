@@ -404,7 +404,6 @@ install_git_repo() {
     local owner_user="${5:?}"
     local owner_group="${6:?}"
     local install_dir="${base_install_dir:?}/${package_name:?}"
-    local tar_file="/tmp/file-$(date +'%Y-%m-%d_%H-%M-%S.%3N')"
 
     # Prepare the install directory.
     rm -rf ${install_dir:?}
