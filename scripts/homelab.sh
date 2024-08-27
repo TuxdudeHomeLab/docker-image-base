@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
-set -x -E -e -o pipefail
+set -E -e -o pipefail
+
+# Enable verbose output of the lines in the script if requested.
+if [[ "${HOMELAB_VERBOSE}" == "y" ]]; then
+    set -x
+fi
 
 export DEBIAN_FRONTEND=noninteractive
 
