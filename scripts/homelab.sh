@@ -85,22 +85,12 @@ install_go() {
 
     # Download the release.
     mkdir -p /tmp/go-download
-    curl \
-        --silent \
-        --fail \
-        --location \
-        --show-error \
-        --remote-name \
-        --output-dir /tmp/go-download \
-        https://go.dev/dl/go${go_version:?}.linux-${pkg_arch:?}.tar.gz
-    curl \
-        --silent \
-        --fail \
-        --location \
-        --show-error \
-        --remote-name \
-        --output-dir /tmp/go-download \
-        https://go.dev/dl/go${go_version:?}.linux-${pkg_arch:?}.tar.gz.asc
+    download_file_to \
+        https://go.dev/dl/go${go_version:?}.linux-${pkg_arch:?}.tar.gz \
+        /tmp/go-download
+    download_file_to \
+        https://go.dev/dl/go${go_version:?}.linux-${pkg_arch:?}.tar.gz.asc \
+        /tmp/go-download
 
     # Download the public keys for verification.
     gpg \
@@ -279,13 +269,7 @@ install_tuxdude_go_package() {
 
     echo "Downloading ${pkg_name:?} for \"${arch:?}\" v${version:?}"
     for url in "${tar_url:?}"  "${tar_sig_url:?}" "${checksums_url:?}" "${checksums_sig_url:?}"; do
-        curl \
-            --silent \
-            --fail \
-            --location \
-            --show-error \
-            --remote-name \
-            --output-dir ${download_dir:?} ${url:?}
+        download_file_to "${url:?}" "${download_dir:?}"
     done
 
     pushd ${download_dir:?}
@@ -325,6 +309,31 @@ add_user() {
         ${user_name:?}
 }
 
+download_file_as() {
+    local url="${1:?}"
+    local dest_file="${2:?}"
+    curl \
+        --silent \
+        --fail \
+        --location \
+        --show-error \
+        --output "${dest_file:?}" \
+        ${url:?}
+}
+
+download_file_to() {
+    local url="${1:?}"
+    local dest_dir="${2:?}"
+    curl \
+        --silent \
+        --fail \
+        --location \
+        --show-error \
+        --remote-name \
+        --output-dir "${dest_dir:?}" \
+        ${url:?}
+}
+
 install_tar_dist() {
     local download_url="${1:?}"
     local download_checksum="${2:?}"
@@ -341,13 +350,7 @@ install_tar_dist() {
     pushd ${base_install_dir:?} >/dev/null
 
     # Download and unpack the release.
-    curl \
-        --silent \
-        --fail \
-        --location \
-        --show-error \
-        --output ${tar_file:?} \
-        ${download_url:?}
+    download_file_as "${download_url:?}" "${tar_file:?}"
     echo "${download_checksum:?} ${tar_file:?}" | sha256sum -c
     tar -xf ${tar_file:?}
     rm ${tar_file:?}
@@ -377,13 +380,7 @@ install_bin() {
     mkdir -p ${install_dir:?}
 
     # Download and unpack the binary.
-    curl \
-        --silent \
-        --fail \
-        --location \
-        --show-error \
-        --output ${bin_file:?} \
-        ${download_url:?}
+    download_file_as "${download_url:?}" "${bin_file:?}"
     echo "${download_checksum:?} ${bin_file:?}" | sha256sum -c
     chmod +x ${bin_file:?}
     mv ${bin_file:?} ${install_dir:?}/${download_file_name:?}
@@ -634,6 +631,12 @@ case "$1" in
         ;;
     "add-user")
         add_user "${@:2}"
+        ;;
+    "download-file-as")
+        download_file_as "${@:2}"
+        ;;
+    "download-file-to")
+        download_file_to "${@:2}"
         ;;
     "install-tar-dist")
         install_tar_dist "${@:2}"
