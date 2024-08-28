@@ -417,7 +417,7 @@ install_git_repo() {
     ln -s ${symlink_to:?} ${install_dir:?}
 
     # Make the installed directory owned by the specified user and the group.
-    chown -R ${owner_user:?}:${owner_group:?} ${install_dir:?}
+    chown -R ${owner_user:?}:${owner_group:?} "${download_dir:?}" "${install_dir:?}"
 }
 
 download_git_repo() {
