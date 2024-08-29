@@ -482,19 +482,21 @@ random_file_name() {
     shuf -zer -n10  {A..Z} {a..z} {0..9} | tr -d '\0'
 }
 
-# Build from sources, package them as a .deb and install the .deb packages.
-install_pkg_from_deb_src() {
+# Build the packages locally for the specified debian source repo.
+build_pkg_from_deb_src() {
     local src_repo="${1:?}"
     local pkgs="${2:?}"
+    local dest_bin_repo_dir="${3:?}"
     local apt_repo_base_path="/etc/apt/sources.list.d"
     local src_repo_file="${apt_repo_base_path:?}/src_$(random_file_name).list"
-    local bin_repo_file="${apt_repo_base_path:?}/bin_$(random_file_name).list"
-    local bin_repo_dir="$(mktemp -d)"
 
     echo "${src_repo:?}" > ${src_repo_file:?}
 
+    # Set up the destination directory cleanly.
+    rm -rf "${dest_bin_repo_dir:?}"
+    mkdir -p "${dest_bin_repo_dir:?}"
     # Ensure APT's "_apt" user can access the files.
-    chmod 777 "${bin_repo_dir:?}"
+    chmod 777 "${dest_bin_repo_dir:?}"
     # Save the list of currently-installed packages so build dependencies
     # can be cleanly removed later.
     local saved_apt_mark="$(apt-mark showmanual)"
@@ -507,7 +509,7 @@ install_pkg_from_deb_src() {
     apt-get build-dep -y ${pkgs:?}
 
     # Compile the target packages.
-    pushd "${bin_repo_dir:?}"
+    pushd "${dest_bin_repo_dir:?}"
     DEB_BUILD_OPTIONS="nocheck parallel=$(nproc)" apt-get source --compile ${pkgs:?}
     popd
 
@@ -519,13 +521,24 @@ install_pkg_from_deb_src() {
     apt-mark showmanual | xargs apt-mark auto > /dev/null
     [ -z "$saved_apt_mark" ] || apt-mark manual $saved_apt_mark;
 
-    # Create a temporary local APT repo to install from and dependency
-    # resolution will be handled by apt.
-    ls -lAFh "${bin_repo_dir:?}"
-    pushd "${bin_repo_dir:?}"
+    # Create the local APT repo, that can be used to install this package from.
+    # The dependency resolution will be handled by apt.
+    pushd "${dest_bin_repo_dir:?}"
     dpkg-scanpackages . > Packages
     popd
-    grep '^Package: ' "${bin_repo_dir:?}/Packages"
+    grep '^Package: ' "${dest_bin_repo_dir:?}/Packages"
+
+    # Remove the packages installed just for the build.
+    remove_packages util-linux
+}
+
+# Install the specified packages from the specified local repo directory.
+install_locally_built_deb_pkg() {
+    local bin_repo_dir="${1:?}"
+    local pkgs="${2:?}"
+    local apt_repo_base_path="/etc/apt/sources.list.d"
+    local bin_repo_file="${apt_repo_base_path:?}/bin_$(random_file_name).list"
+
     echo "deb [ trusted=yes ] file://${bin_repo_dir:?} ./" > ${bin_repo_file:?}
 
     # Work around the following APT issue by using "Acquire::GzipIndexes=false"
@@ -539,9 +552,8 @@ install_pkg_from_deb_src() {
     # just built and published to the local repository.
     install_packages ${pkgs:?}
 
-    # Remove the build artifacts and the binary repository.
-    remove_packages util-linux
-    rm -rf "${bin_repo_dir:?}" ${bin_repo_file:?}
+    # Remove the binary repository.
+    rm -rf ${bin_repo_file:?}
 }
 
 build_pkg_from_std_deb_src() {
@@ -660,8 +672,12 @@ case "$1" in
         export_gpg_key "${@:2}"
         cleanup_post_package_op
         ;;
-    "install-pkg-from-deb-src")
-        install_pkg_from_deb_src "${@:2}"
+    "build-pkg-from-deb-src")
+        build_pkg_from_deb_src "${@:2}"
+        cleanup_post_package_op
+        ;;
+    "install-locally-built-deb-pkg")
+        install_locally_built_deb_pkg "${@:2}"
         cleanup_post_package_op
         ;;
     "build-pkg-from-std-deb-src")
