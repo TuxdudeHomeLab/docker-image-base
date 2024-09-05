@@ -585,7 +585,7 @@ build_pkg_from_std_deb_src() {
     DEB_BUILD_OPTIONS="nocheck parallel=$(nproc)" apt-get source ${pkgs:?}
     # Apply any available patches.
     mkdir -p /patches/
-    find /patches -iname *.diff -print0 | sort -z | xargs -0 -n 1 patch -p1 -i
+    find /patches -iname *.diff -print0 | sort -z | xargs -0 -r -n 1 patch -p1 -i
     # Build the target packages with the patches.
     DEB_BUILD_OPTIONS="nocheck parallel=$(nproc)" apt-get source --compile ${pkgs:?}
     # Move the resulting *.deb files.
